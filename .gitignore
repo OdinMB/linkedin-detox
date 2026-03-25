@@ -1,0 +1,19 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment
+.env
+!.env.sample
+
+# AI development
+.playwright-mcp/
+.claude/settings.local.json
+nul
+NUL

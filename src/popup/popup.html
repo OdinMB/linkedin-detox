@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 360px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #1a1a2e;
+      color: #eee;
+      padding: 16px;
+    }
+
+    h1 {
+      font-size: 16px;
+      color: #e94560;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 11px;
+      color: #666;
+      margin-bottom: 16px;
+    }
+
+    .stats {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 16px;
+      padding: 8px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 6px;
+    }
+
+    .section {
+      margin-bottom: 16px;
+    }
+
+    .section label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #ccc;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .toggle-row span {
+      font-size: 13px;
+    }
+
+    /* Toggle switch */
+    .switch {
+      position: relative;
+      width: 40px;
+      height: 22px;
+    }
+
+    .switch input { opacity: 0; width: 0; height: 0; }
+
+    .slider {
+      position: absolute;
+      inset: 0;
+      background: #333;
+      border-radius: 22px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .slider::before {
+      content: "";
+      position: absolute;
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background: #888;
+      border-radius: 50%;
+      transition: 0.2s;
+    }
+
+    .switch input:checked + .slider { background: #e94560; }
+    .switch input:checked + .slider::before {
+      transform: translateX(18px);
+      background: #fff;
+    }
+
+    /* Mode selector */
+    .mode-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #333;
+      border-radius: 6px;
+      background: transparent;
+      color: #ccc;
+      font-size: 12px;
+      cursor: pointer;
+      text-align: center;
+      transition: 0.15s;
+    }
+
+    .mode-btn:hover { border-color: #e94560; }
+
+    .mode-btn.active {
+      border-color: #e94560;
+      background: rgba(233, 69, 96, 0.15);
+      color: #e94560;
+      font-weight: 600;
+    }
+
+    /* Threshold slider */
+    .threshold-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .threshold-row input[type="range"] {
+      flex: 1;
+      accent-color: #e94560;
+    }
+
+    .threshold-value {
+      font-size: 13px;
+      font-weight: 700;
+      color: #e94560;
+      min-width: 30px;
+      text-align: right;
+    }
+
+    /* Phrase list */
+    .phrase-list {
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 6px;
+      margin-bottom: 8px;
+    }
+
+    .phrase-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 6px;
+      font-size: 12px;
+      border-radius: 4px;
+    }
+
+    .phrase-item:hover { background: rgba(255,255,255,0.05); }
+
+    .phrase-item button {
+      background: none;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      font-size: 14px;
+      padding: 0 4px;
+    }
+
+    .phrase-item button:hover { color: #e94560; }
+
+    .add-phrase {
+      display: flex;
+      gap: 6px;
+    }
+
+    .add-phrase input {
+      flex: 1;
+      padding: 6px 8px;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 4px;
+      color: #eee;
+      font-size: 12px;
+    }
+
+    .add-phrase input::placeholder { color: #555; }
+
+    .add-phrase button {
+      padding: 6px 12px;
+      background: #e94560;
+      border: none;
+      border-radius: 4px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .add-phrase button:hover { background: #c7364e; }
+
+    .reset-btn {
+      display: block;
+      width: 100%;
+      margin-top: 8px;
+      padding: 6px;
+      background: none;
+      border: 1px solid #333;
+      border-radius: 4px;
+      color: #666;
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .reset-btn:hover { border-color: #e94560; color: #e94560; }
+  </style>
+</head>
+<body>
+  <h1>LinkedIn Detox</h1>
+  <div class="subtitle">Because your feed deserves better.</div>
+
+  <div class="stats">
+    Posts blocked this session: <strong id="blocked-count">0</strong>
+  </div>
+
+  <div class="section">
+    <div class="toggle-row">
+      <span>Enabled</span>
+      <label class="switch">
+        <input type="checkbox" id="toggle-enabled" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+  </div>
+
+  <div class="section">
+    <label>Mode</label>
+    <div class="mode-buttons">
+      <button class="mode-btn active" data-mode="roast">Roast</button>
+      <button class="mode-btn" data-mode="hide">Hide</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <label>Sensitivity (threshold: <span id="threshold-display">30</span>%)</label>
+    <div class="threshold-row">
+      <span style="font-size:11px;color:#666">Lenient</span>
+      <input type="range" id="threshold" min="10" max="100" step="10" value="30">
+      <span style="font-size:11px;color:#666">Strict</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <label>Blocked Phrases</label>
+    <div class="phrase-list" id="phrase-list"></div>
+    <div class="add-phrase">
+      <input type="text" id="new-phrase" placeholder="Add a phrase...">
+      <button id="add-btn">Add</button>
+    </div>
+    <button class="reset-btn" id="reset-btn">Reset to defaults</button>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
