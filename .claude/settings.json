@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "npm install",
+      "npm test",
+      "npm run",
+      "npx vitest",
+      "node scripts/build-embeddings.js",
+      "cp node_modules/@xenova/transformers/dist/transformers.min.js src/lib/transformers.min.js",
+      "mkdir -p src/lib",
+      "wc -c src/lib/transformers.min.js",
+      "wc -c src/phrase-embeddings.json"
+    ]
+  }
+}

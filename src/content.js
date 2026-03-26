@@ -6,7 +6,7 @@
  * 1. Find all posts currently in DOM
  * 2. Hash their text
  * 3. If hash is in blockedSet → overlay a banner
- * No element refs stored. Banners are recreated each frame.
+ * No element refs stored. Banners persist and are repositioned each frame.
  */
 
 const ROAST_MESSAGES = [
@@ -33,6 +33,10 @@ function getRandomRoast() {
   return ROAST_MESSAGES[Math.floor(Math.random() * ROAST_MESSAGES.length)];
 }
 
+function isContextValid() {
+  try { return !!chrome.runtime.id; } catch { return false; }
+}
+
 function getRandomBannerImage() {
   const path = BANNER_IMAGES[Math.floor(Math.random() * BANNER_IMAGES.length)];
   return chrome.runtime.getURL(path);
@@ -42,17 +46,54 @@ function escapeHtml(str) {
   return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
+// --- Config (declared first — used by recordBlocked and render) ---
+
+const SENSITIVITY_THRESHOLDS = { chill: 50, suspicious: 25, unhinged: 1 };
+
+const DEFAULT_CONFIG = {
+  enabled: true,
+  mode: "roast",
+  sensitivity: "suspicious",
+  threshold: 25,
+  testMode: false,
+  semanticEnabled: false,
+  userSignalWords: [],
+  userCooccurrencePatterns: [],
+};
+
+let currentConfig = { ...DEFAULT_CONFIG };
+
+function loadConfig() {
+  return new Promise((resolve) => {
+    chrome.storage.sync.get(DEFAULT_CONFIG, (items) => {
+      items.threshold = SENSITIVITY_THRESHOLDS[items.sensitivity] || 25;
+      if (items.userSignalWords && items.userSignalWords.length > 0) {
+        items.userSignalWords = items.userSignalWords.map((w) => {
+          const escaped = w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+          return new RegExp(`\\b${escaped}(s|ed|ing|er|ly|tion|ment)?\\b`, "gi");
+        });
+      }
+      currentConfig = { ...items, _blocked: 0 };
+      resolve(currentConfig);
+    });
+  });
+}
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== "sync") return;
+  for (const [key, { newValue }] of Object.entries(changes)) {
+    currentConfig[key] = newValue;
+  }
+  window.location.reload();
+});
+
 // --- State ---
 
-// blockedSet: hash -> { result, roastMessage, dismissed }
 const blockedSet = new Map();
-// analyzedHashes: hashes we've already run through the detector
 const analyzedHashes = new Set();
-// Track post index for test mode
 let globalPostIndex = 0;
 
 function hashText(text) {
-  // Simple fast hash — just needs to be unique per post, not cryptographic
   let h = 0;
   for (let i = 0; i < text.length; i++) {
     h = ((h << 5) - h + text.charCodeAt(i)) | 0;
@@ -60,12 +101,30 @@ function hashText(text) {
   return String(h);
 }
 
+function recordBlocked(hash, result) {
+  currentConfig._blocked = (currentConfig._blocked || 0) + 1;
+  chrome.storage.local.set({ blockedCount: currentConfig._blocked });
+  blockedSet.set(hash, {
+    result,
+    roastMessage: getRandomRoast(),
+    bannerImage: getRandomBannerImage(),
+    dismissed: false,
+  });
+}
+
 // --- Overlay ---
 
+const FEED_SELECTOR = "[componentkey='container-update-list_mainFeed-lazy-container']";
+const POST_SELECTOR = `${FEED_SELECTOR} > div[data-display-contents="true"] > div`;
+
 let overlayEl = null;
+const liveBanners = new Map();
 
 function getOverlay() {
   if (overlayEl && document.body.contains(overlayEl)) return overlayEl;
+  // Overlay was removed (LinkedIn's React can replace body children).
+  // Clear banner cache — they were children of the old overlay.
+  liveBanners.clear();
   overlayEl = document.createElement("div");
   overlayEl.id = "ld-overlay";
   overlayEl.addEventListener("mousedown", (e) => {
@@ -75,7 +134,11 @@ function getOverlay() {
     const entry = blockedSet.get(hash);
     if (entry) {
       entry.dismissed = true;
-      render();
+      const banner = liveBanners.get(hash);
+      if (banner) {
+        banner.remove();
+        liveBanners.delete(hash);
+      }
     }
   });
   document.body.appendChild(overlayEl);
@@ -83,16 +146,22 @@ function getOverlay() {
 }
 
 function render() {
+  if (!isContextValid()) return;
   const overlay = getOverlay();
-  overlay.innerHTML = "";
 
-  if (!currentConfig.enabled) return;
+  if (!currentConfig.enabled) {
+    liveBanners.forEach((el) => el.remove());
+    liveBanners.clear();
+    return;
+  }
+
+  const mode = currentConfig.mode || "roast";
+  const activeHashes = new Set();
 
   const posts = document.querySelectorAll(POST_SELECTOR);
   posts.forEach((post) => {
     const rect = post.getBoundingClientRect();
     if (rect.height < 10) return;
-    // Skip posts not near viewport
     if (rect.bottom < -100 || rect.top > window.innerHeight + 100) return;
 
     const text = post.innerText?.trim() || "";
@@ -102,8 +171,18 @@ function render() {
     const entry = blockedSet.get(hash);
     if (!entry || entry.dismissed) return;
 
-    const mode = currentConfig.mode || "roast";
-    const banner = document.createElement("div");
+    activeHashes.add(hash);
+
+    let banner = liveBanners.get(hash);
+    if (banner) {
+      banner.style.top = `${rect.top}px`;
+      banner.style.left = `${rect.left}px`;
+      banner.style.width = `${rect.width}px`;
+      banner.style.height = `${rect.height}px`;
+      return;
+    }
+
+    banner = document.createElement("div");
     banner.className = "ld-banner";
     banner.style.top = `${rect.top}px`;
     banner.style.left = `${rect.left}px`;
@@ -133,18 +212,44 @@ function render() {
     }
 
     overlay.appendChild(banner);
+    liveBanners.set(hash, banner);
+  });
+
+  liveBanners.forEach((el, hash) => {
+    if (!activeHashes.has(hash)) {
+      el.remove();
+      liveBanners.delete(hash);
+    }
   });
 }
 
 // --- Scanning ---
 
-const FEED_SELECTOR = "[componentkey='container-update-list_mainFeed-lazy-container']";
-const POST_SELECTOR = `${FEED_SELECTOR} > div[data-display-contents="true"] > div`;
+async function runSemanticPass(checks, config) {
+  const threshold = config.threshold ?? 30;
+  for (const { hash, text } of checks) {
+    if (blockedSet.has(hash)) continue;
+    try {
+      const semanticResult = await getSemanticScore(text);
+      if (semanticResult.score >= threshold) {
+        recordBlocked(hash, {
+          blocked: true,
+          score: semanticResult.score,
+          matches: semanticResult.matches,
+        });
+      }
+    } catch (err) {
+      console.error("[LinkedIn Detox] Semantic scoring failed:", err);
+    }
+  }
+  render();
+}
 
 function scanFeed(config) {
-  if (!config.enabled) return;
+  if (!config.enabled || !isContextValid()) return;
 
   const posts = document.querySelectorAll(POST_SELECTOR);
+  const pendingSemanticChecks = [];
   let newCount = 0;
 
   posts.forEach((post) => {
@@ -160,30 +265,21 @@ function scanFeed(config) {
 
     const currentIndex = globalPostIndex++;
 
-    // Test mode: force-block 3rd and 5th posts
     if (config.testMode && (currentIndex === 2 || currentIndex === 4)) {
-      blockedSet.set(hash, {
-        result: { blocked: true, score: 99, matches: ["Test mode"] },
-        roastMessage: getRandomRoast(),
-        bannerImage: getRandomBannerImage(),
-        dismissed: false,
-      });
+      recordBlocked(hash, { blocked: true, score: 99, matches: ["Test mode"] });
       console.log(`[LinkedIn Detox] Test-blocked post #${currentIndex + 1} (hash=${hash})`);
       return;
     }
 
-    // Normal detection
     const result = analyzePost(text, config);
-    if (!result.blocked) return;
+    if (result.blocked) {
+      recordBlocked(hash, result);
+      return;
+    }
 
-    config._blocked = (config._blocked || 0) + 1;
-    chrome.storage.local.set({ blockedCount: config._blocked });
-    blockedSet.set(hash, {
-      result,
-      roastMessage: getRandomRoast(),
-      bannerImage: getRandomBannerImage(),
-      dismissed: false,
-    });
+    if (config.semanticEnabled) {
+      pendingSemanticChecks.push({ hash, text, syncResult: result });
+    }
   });
 
   if (newCount > 0) {
@@ -191,49 +287,11 @@ function scanFeed(config) {
   }
 
   render();
-}
 
-// --- Config ---
-
-const SENSITIVITY_THRESHOLDS = { chill: 50, suspicious: 25, unhinged: 1 };
-
-const DEFAULT_CONFIG = {
-  enabled: true,
-  mode: "roast",
-  sensitivity: "suspicious",
-  threshold: 25,
-  testMode: false,
-  userSignalWords: [],
-  userCooccurrencePatterns: [],
-};
-
-let currentConfig = { ...DEFAULT_CONFIG };
-
-function loadConfig() {
-  return new Promise((resolve) => {
-    chrome.storage.sync.get(DEFAULT_CONFIG, (items) => {
-      // Derive numeric threshold from sensitivity level
-      items.threshold = SENSITIVITY_THRESHOLDS[items.sensitivity] || 25;
-      // Convert stored signal word strings to RegExp patterns
-      if (items.userSignalWords && items.userSignalWords.length > 0) {
-        items.userSignalWords = items.userSignalWords.map((w) => {
-          const escaped = w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-          return new RegExp(`\\b${escaped}(s|ed|ing|er|ly|tion|ment)?\\b`, "gi");
-        });
-      }
-      currentConfig = { ...items, _blocked: 0 };
-      resolve(currentConfig);
-    });
-  });
-}
-
-chrome.storage.onChanged.addListener((changes, area) => {
-  if (area !== "sync") return;
-  for (const [key, { newValue }] of Object.entries(changes)) {
-    currentConfig[key] = newValue;
+  if (pendingSemanticChecks.length > 0) {
+    runSemanticPass(pendingSemanticChecks, config);
   }
-  window.location.reload();
-});
+}
 
 // --- Main ---
 
@@ -241,7 +299,6 @@ console.log("[LinkedIn Detox] Content script loaded");
 loadConfig().then((config) => {
   console.log("[LinkedIn Detox] Config:", JSON.stringify(config));
 
-  // Set up observer FIRST so we catch React rendering content into posts
   let mutationCount = 0;
   let scanScheduled = false;
   function scheduleScan() {
@@ -254,7 +311,6 @@ loadConfig().then((config) => {
   }
 
   const observer = new MutationObserver((mutations) => {
-    // Ignore mutations from our own overlay to avoid infinite render loops
     const dominated = mutations.every((m) => {
       const overlay = document.getElementById("ld-overlay");
       return overlay && (overlay === m.target || overlay.contains(m.target));
@@ -265,16 +321,13 @@ loadConfig().then((config) => {
     scheduleScan();
   });
 
-  // Observe from document.body to catch everything, including React rendering
   observer.observe(document.body, { childList: true, subtree: true, characterData: true });
 
-  // Initial scan + retries (React populates content asynchronously)
   scanFeed(config);
   setTimeout(() => { console.log("[LinkedIn Detox] Retry scan 1s"); scanFeed(currentConfig); }, 1000);
   setTimeout(() => { console.log("[LinkedIn Detox] Retry scan 3s"); scanFeed(currentConfig); }, 3000);
   setTimeout(() => { console.log("[LinkedIn Detox] Retry scan 6s"); scanFeed(currentConfig); }, 6000);
 
-  // Re-render on scroll
   let rafPending = false;
   function onScroll() {
     if (rafPending) return;

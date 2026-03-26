@@ -232,6 +232,25 @@
       padding: 2px 6px;
     }
 
+    /* Semantic / beta */
+    .beta-badge {
+      font-size: 9px;
+      font-weight: 700;
+      background: #6366f1;
+      color: #fff;
+      padding: 1px 5px;
+      border-radius: 3px;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+    .switch--semantic input:checked + .slider { background: #6366f1; }
+    .semantic-desc {
+      font-size: 10px;
+      color: #666;
+      margin: -8px 0 12px 0;
+      line-height: 1.4;
+    }
+
     /* Test mode */
     .test-mode-row { opacity: 0.8; }
     .test-badge {
@@ -245,6 +264,13 @@
       vertical-align: middle;
     }
     .switch--test input:checked + .slider { background: #e2a308; }
+
+    .sensitivity-desc {
+      font-size: 10px;
+      color: #666;
+      margin-top: 6px;
+      line-height: 1.4;
+    }
 
     .subsection {
       margin-bottom: 12px;
@@ -274,6 +300,14 @@
         <span class="slider"></span>
       </label>
     </div>
+    <div class="toggle-row">
+      <span>AI Detection <span class="beta-badge">BETA</span></span>
+      <label class="switch switch--semantic">
+        <input type="checkbox" id="toggle-semantic">
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="semantic-desc" id="semantic-desc">Uses a small AI model for deeper detection. Downloads ~5MB on first use. May be slower on older devices.</div>
     <div class="toggle-row test-mode-row">
       <span>Test Mode <span class="test-badge">DEBUG</span></span>
       <label class="switch switch--test">
@@ -298,6 +332,7 @@
       <button class="mode-btn sensitivity-btn active" data-sensitivity="suspicious">Suspicious</button>
       <button class="mode-btn sensitivity-btn" data-sensitivity="unhinged">Unhinged</button>
     </div>
+    <div class="sensitivity-desc" id="sensitivity-desc">Posts scoring above the threshold are flagged as AI slop.</div>
   </div>
 
   <div class="section">

@@ -25,9 +25,15 @@ const BUILTIN_COOC_PATTERNS = [
 ];
 
 const SENSITIVITY_THRESHOLDS = { chill: 50, suspicious: 25, unhinged: 1 };
+const SENSITIVITY_DESCS = {
+  chill: "Only the most obvious AI slop gets flagged (score > 50).",
+  suspicious: "Catches most AI-generated posts (score > 25).",
+  unhinged: "Flags anything with even a hint of AI slop (score > 1).",
+};
 
 const els = {
   enabled: document.getElementById("toggle-enabled"),
+  semanticEnabled: document.getElementById("toggle-semantic"),
   testMode: document.getElementById("toggle-test-mode"),
   modeButtons: document.querySelectorAll(".mode-btn:not(.sensitivity-btn)"),
   sensitivityButtons: document.querySelectorAll(".sensitivity-btn"),
@@ -115,6 +121,7 @@ function save() {
   const sensitivity = document.querySelector(".sensitivity-btn.active").dataset.sensitivity;
   chrome.storage.sync.set({
     enabled: els.enabled.checked,
+    semanticEnabled: els.semanticEnabled.checked,
     testMode: els.testMode.checked,
     mode: document.querySelector(".mode-btn:not(.sensitivity-btn).active").dataset.mode,
     sensitivity: sensitivity,
@@ -128,6 +135,7 @@ function loadState() {
   chrome.storage.sync.get(
     {
       enabled: true,
+      semanticEnabled: false,
       testMode: false,
       mode: "roast",
       sensitivity: "suspicious",
@@ -136,6 +144,7 @@ function loadState() {
     },
     (items) => {
       els.enabled.checked = items.enabled;
+      els.semanticEnabled.checked = items.semanticEnabled;
       els.testMode.checked = items.testMode;
 
       els.modeButtons.forEach((btn) => {
@@ -145,6 +154,7 @@ function loadState() {
       els.sensitivityButtons.forEach((btn) => {
         btn.classList.toggle("active", btn.dataset.sensitivity === items.sensitivity);
       });
+      updateSensitivityDesc(items.sensitivity);
 
       userSignalWords = items.userSignalWords || [];
       userCooccurrencePatterns = items.userCooccurrencePatterns || [];
@@ -164,6 +174,7 @@ function loadState() {
 // --- Event Listeners ---
 
 els.enabled.addEventListener("change", save);
+els.semanticEnabled.addEventListener("change", save);
 els.testMode.addEventListener("change", save);
 
 els.modeButtons.forEach((btn) => {
@@ -178,9 +189,15 @@ els.sensitivityButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
     els.sensitivityButtons.forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
+    updateSensitivityDesc(btn.dataset.sensitivity);
     save();
   });
 });
+
+function updateSensitivityDesc(sensitivity) {
+  document.getElementById("sensitivity-desc").textContent =
+    SENSITIVITY_DESCS[sensitivity] || "";
+}
 
 // Signal words
 els.addSignalWordBtn.addEventListener("click", () => {

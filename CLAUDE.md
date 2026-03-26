@@ -15,12 +15,22 @@ Chrome extension that detects AI-generated slop on LinkedIn and either hides it 
 ├── manifest.json           # Extension manifest (MV3)
 ├── icons/                  # Extension icons (16/48/128)
 ├── src/
-│   ├── detector.js         # Detection engine — analyzePost(text, config)
+│   ├── detector.js         # Detection engine — analyzePost(text, config) + analyzePostAsync
+│   ├── semantic-scorer.js  # Cosine similarity scoring against phrase embeddings
+│   ├── semantic-bridge.js  # Content script — bridges to background for embedding
+│   ├── background.js       # Service worker — relays to offscreen document
+│   ├── offscreen.html      # Offscreen document shell
+│   ├── offscreen.js        # Loads transformers.js + MiniLM model
+│   ├── phrase-embeddings.json # Precomputed embeddings for ~50 canonical AI-slop phrase types
+│   ├── lib/                    # Vendored libraries (not checked in — see setup)
+│   │   └── transformers.min.js # @xenova/transformers CJS bundle
 │   ├── content.js          # Content script — feed observer + DOM manipulation
 │   ├── content.css         # Injected styles for banners and hidden posts
 │   └── popup/
 │       ├── popup.html      # Settings popup UI
 │       └── popup.js        # Popup logic — phrase management, mode toggle
+├── scripts/
+│   └── build-embeddings.js # Node script to regenerate phrase-embeddings.json
 ├── .context/               # Architecture docs
 ├── .plans/                 # Task plans
 │   └── completed/
@@ -45,6 +55,21 @@ Chrome extension that detects AI-generated slop on LinkedIn and either hides it 
 
 Everything is vanilla JS loaded directly by Chrome. No bundler, no transpiler.
 
+### Semantic scoring setup (one-time)
+
+The semantic scorer requires a vendored copy of `@xenova/transformers` and precomputed phrase embeddings. These are not checked into git.
+
+```bash
+npm install -D @xenova/transformers
+mkdir -p src/lib
+cp node_modules/@xenova/transformers/dist/transformers.min.js src/lib/transformers.min.js
+node scripts/build-embeddings.js
+```
+
+- `src/lib/transformers.min.js` — CJS bundle (~900KB), loaded by the Web Worker via `importScripts` with a `module.exports` shim
+- `src/phrase-embeddings.json` — 384-dimensional embeddings for 49 canonical AI-slop phrase types (~530KB)
+- Re-run `node scripts/build-embeddings.js` whenever canonical phrases in `scripts/build-embeddings.js` change
+
 ## Architecture — Detection
 
 The detection pipeline lives in `src/detector.js` with a single entry point:
@@ -53,15 +78,40 @@ The detection pipeline lives in `src/detector.js` with a single entry point:
 analyzePost(text, config) -> { blocked: bool, score: number, matches: string[] }
 ```
 
-Three signal-based scorers, each returning `{ score: 0-100, matches: string[] }`:
+Three synchronous heuristic scorers, each returning `{ score: 0-100, matches: string[] }`:
 
 1. **`emDashScorer`** — Counts em dashes (`--`, `---`, `\u2014`) and ellipsis (`...`) per sentence. High density = AI signal.
 2. **`wordFrequencyScorer`** — Measures density of AI-typical words (leverage, synergy, unlock, etc.) using regex patterns that capture morphological variants. Accepts optional user-defined patterns.
 3. **`cooccurrenceScorer`** — Detects thought-leader sentence templates by checking if signal words from different groups appear in the same sentence (e.g., "humbled" + "share"). Accepts optional user-defined patterns.
 
+Plus one optional async scorer:
+
+4. **`semanticScorer`** (opt-in via popup toggle) — Uses a quantized MiniLM embedding model (`Xenova/all-MiniLM-L6-v2`) running in a Web Worker to compare post sentences against ~50 canonical AI-slop phrase types via cosine similarity. Catches novel phrasings that heuristics miss.
+
+**Two-pass scoring:** The semantic scorer is expensive (embeds every sentence via an ML model), so it only runs on posts the heuristics missed:
+- **Pass 1 (sync):** Run the three heuristic scorers. If the post scores above threshold, block it immediately — no semantic scoring needed.
+- **Pass 2 (async, only uncaught posts):** If semantic scoring is enabled and Pass 1 didn't block the post, send it to the embedding model. If the semantic score exceeds threshold, block retroactively.
+
+This means the model is never invoked for posts that heuristics already catch, keeping the common case fast.
+
 **Scoring combination:** `finalScore = max(allScores)`. One strong signal is enough to flag a post. The threshold slider in the popup controls sensitivity.
 
 **User-defined patterns** are stored in `chrome.storage.sync` as `userSignalWords` (word strings, converted to RegExp by `content.js`) and `userCooccurrencePatterns` (group arrays with labels).
+
+### Semantic Scorer — Offscreen Architecture
+
+The embedding model needs full browser APIs (WebAssembly, Workers, Atomics) that MV3 service workers lack. The model runs in an **offscreen document**:
+- `src/semantic-bridge.js` (content script) sends `chrome.runtime.sendMessage({ type: "embed", sentences })`
+- `src/background.js` (service worker) creates the offscreen document and relays the message
+- `src/offscreen.js` loads the model, embeds sentences, returns embeddings
+- `src/semantic-scorer.js` computes cosine similarity against the phrase bank
+
+**Setup:** See "Semantic scoring setup" in the Development section above.
+
+## Context Files
+
+- **[Semantic Scoring](.context/semantic-scoring.md)** — The semantic scorer uses a two-pass async architecture; changes to scoring, worker protocol, or phrase bank must respect this flow. Details on components, data flow, and key decisions.
+- **[LinkedIn DOM Challenges](.context/linkedin-dom-challenges.md)** — LinkedIn virtualizes its feed; the extension uses text hashing instead of element refs. Details on the overlay approach.
 
 ## Conventions
 

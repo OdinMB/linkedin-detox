@@ -202,7 +202,7 @@ function cooccurrenceScorer(text, userPatterns) {
 // --- Main ---
 
 /**
- * Analyze a post for AI-generated slop.
+ * Analyze a post for AI-generated slop (synchronous — heuristic scorers only).
  *
  * @param {string} text - The post text content
  * @param {object} config - { threshold: number, userSignalWords?: RegExp[], userCooccurrencePatterns?: Array }
@@ -227,6 +227,38 @@ function analyzePost(text, config) {
   };
 }
 
+/**
+ * Two-pass analysis: sync heuristics first, then optional async semantic scoring.
+ *
+ * Pass 1: run heuristic scorers synchronously.
+ * Pass 2: if config.semanticEnabled and config.getSemanticScore is provided,
+ *          run the semantic scorer and merge results (max score wins).
+ *
+ * @param {string} text
+ * @param {object} config - Same as analyzePost, plus:
+ *   - semanticEnabled?: boolean
+ *   - getSemanticScore?: (text: string) => Promise<{ score: number, matches: string[] }>
+ * @returns {Promise<{ blocked: boolean, score: number, matches: string[] }>}
+ */
+async function analyzePostAsync(text, config) {
+  const syncResult = analyzePost(text, config);
+
+  if (!config.semanticEnabled || !config.getSemanticScore) {
+    return syncResult;
+  }
+
+  const semanticResult = await config.getSemanticScore(text);
+  const maxScore = Math.max(syncResult.score, semanticResult.score);
+  const allMatches = [...syncResult.matches, ...semanticResult.matches];
+  const threshold = config.threshold ?? 30;
+
+  return {
+    blocked: maxScore >= threshold,
+    score: maxScore,
+    matches: allMatches,
+  };
+}
+
 // Module exports for testing (no-op in browser)
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {
@@ -234,6 +266,7 @@ if (typeof module !== "undefined" && module.exports) {
     wordFrequencyScorer,
     cooccurrenceScorer,
     analyzePost,
+    analyzePostAsync,
     SIGNAL_WORDS,
     COOCCURRENCE_PATTERNS,
   };
