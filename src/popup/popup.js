@@ -42,6 +42,7 @@ const POPUP_DEFAULT_PHRASES = [
 
 const els = {
   enabled: document.getElementById("toggle-enabled"),
+  testMode: document.getElementById("toggle-test-mode"),
   modeButtons: document.querySelectorAll(".mode-btn"),
   threshold: document.getElementById("threshold"),
   thresholdDisplay: document.getElementById("threshold-display"),
@@ -78,6 +79,7 @@ function renderPhrases() {
 function save() {
   chrome.storage.sync.set({
     enabled: els.enabled.checked,
+    testMode: els.testMode.checked,
     mode: document.querySelector(".mode-btn.active").dataset.mode,
     threshold: parseInt(els.threshold.value),
     phrases: currentPhrases,
@@ -88,12 +90,14 @@ function loadState() {
   chrome.storage.sync.get(
     {
       enabled: true,
+      testMode: false,
       mode: "roast",
       threshold: 30,
       phrases: null,
     },
     (items) => {
       els.enabled.checked = items.enabled;
+      els.testMode.checked = items.testMode;
 
       els.modeButtons.forEach((btn) => {
         btn.classList.toggle("active", btn.dataset.mode === items.mode);
@@ -114,6 +118,7 @@ function loadState() {
 
 // Event listeners
 els.enabled.addEventListener("change", save);
+els.testMode.addEventListener("change", save);
 
 els.modeButtons.forEach((btn) => {
   btn.addEventListener("click", () => {

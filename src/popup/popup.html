@@ -217,6 +217,20 @@
     }
 
     .reset-btn:hover { border-color: #e94560; color: #e94560; }
+
+    /* Test mode */
+    .test-mode-row { opacity: 0.8; }
+    .test-badge {
+      font-size: 9px;
+      font-weight: 700;
+      background: #e2a308;
+      color: #1a1a2e;
+      padding: 1px 5px;
+      border-radius: 3px;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+    .switch--test input:checked + .slider { background: #e2a308; }
   </style>
 </head>
 <body>
@@ -232,6 +246,13 @@
       <span>Enabled</span>
       <label class="switch">
         <input type="checkbox" id="toggle-enabled" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="toggle-row test-mode-row">
+      <span>Test Mode <span class="test-badge">DEBUG</span></span>
+      <label class="switch switch--test">
+        <input type="checkbox" id="toggle-test-mode">
         <span class="slider"></span>
       </label>
     </div>
