@@ -68,6 +68,16 @@ function getOverlay() {
   if (overlayEl && document.body.contains(overlayEl)) return overlayEl;
   overlayEl = document.createElement("div");
   overlayEl.id = "ld-overlay";
+  overlayEl.addEventListener("mousedown", (e) => {
+    const btn = e.target.closest(".ld-banner__close");
+    if (!btn) return;
+    const hash = btn.dataset.hash;
+    const entry = blockedSet.get(hash);
+    if (entry) {
+      entry.dismissed = true;
+      render();
+    }
+  });
   document.body.appendChild(overlayEl);
   return overlayEl;
 }
@@ -112,7 +122,7 @@ function render() {
       banner.innerHTML = `
         <div class="ld-banner__header">
           <span class="ld-banner__title">LinkedIn Detox</span>
-          <button class="ld-banner__close" aria-label="Dismiss">&times;</button>
+          <button class="ld-banner__close" data-hash="${escapeHtml(hash)}" aria-label="Dismiss">&times;</button>
         </div>
         <div class="ld-banner__body">
           <img class="ld-banner__img" src="${escapeHtml(entry.bannerImage)}" alt="" />
@@ -120,11 +130,6 @@ function render() {
           <div class="ld-banner__message">${escapeHtml(entry.roastMessage)}</div>
         </div>
       `;
-      banner.querySelector(".ld-banner__close").addEventListener("click", (e) => {
-        e.stopPropagation();
-        entry.dismissed = true;
-        render();
-      });
     }
 
     overlay.appendChild(banner);
@@ -248,7 +253,13 @@ loadConfig().then((config) => {
     });
   }
 
-  const observer = new MutationObserver(() => {
+  const observer = new MutationObserver((mutations) => {
+    // Ignore mutations from our own overlay to avoid infinite render loops
+    const dominated = mutations.every((m) => {
+      const overlay = document.getElementById("ld-overlay");
+      return overlay && (overlay === m.target || overlay.contains(m.target));
+    });
+    if (dominated) return;
     mutationCount++;
     if (mutationCount <= 3) console.log(`[LinkedIn Detox] Mutation #${mutationCount}`);
     scheduleScan();
