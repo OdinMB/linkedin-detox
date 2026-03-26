@@ -6,7 +6,12 @@
  * Background service worker relays messages here.
  */
 
-import { pipeline as createPipeline } from "./lib/transformers.min.js";
+import { env, pipeline as createPipeline } from "./lib/transformers.min.js";
+
+// Force single-threaded WASM — multi-threading spawns blob-URL workers
+// that violate MV3 CSP. The offscreen doc is isolated so this is fine.
+env.backends.onnx.wasm.numThreads = 1;
+env.backends.onnx.wasm.proxy = false;
 
 let pipelineInstance = null;
 let initPromise = null;
