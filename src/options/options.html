@@ -339,6 +339,7 @@
     <button class="tab-btn active" data-tab="heuristics">Heuristics</button>
     <button class="tab-btn" data-tab="semantics">Semantics</button>
     <button class="tab-btn" data-tab="settings">Settings</button>
+    <button class="tab-btn" data-tab="privacy">Privacy</button>
   </div>
 
   <!-- Tab: Heuristics -->
@@ -438,6 +439,70 @@
         </label>
       </div>
       <div class="toggle-desc">Dumps detection scores, scan timing, and config into the browser console (DevTools > Console). Turn this on when something seems off.</div>
+    </div>
+  </div>
+
+  <!-- Tab: Privacy -->
+  <div class="tab-panel" id="tab-privacy">
+    <div class="section">
+      <h3>Privacy Policy</h3>
+      <div class="toggle-desc" style="margin-bottom: 16px;">Last updated: March 27, 2026</div>
+
+      <p style="color: #ccc; font-size: 14px; line-height: 1.7; margin-bottom: 16px;">
+        LinkedIn Detox is designed with a simple principle: <strong style="color: #e94560;">your data never leaves your device</strong>.
+      </p>
+
+      <h3>What the extension accesses</h3>
+      <p style="color: #ccc; font-size: 14px; line-height: 1.7; margin-bottom: 16px;">
+        The extension reads the text content of posts in your LinkedIn feed. This text is analyzed
+        locally on your device to determine whether it appears to be AI-generated. No post content,
+        browsing activity, or personal information is ever transmitted to any external server.
+      </p>
+
+      <h3>Local processing</h3>
+      <p style="color: #ccc; font-size: 14px; line-height: 1.7; margin-bottom: 16px;">
+        All detection happens entirely within your browser. The heuristic scorers run synchronous
+        pattern matching in the content script. The optional semantic scorer runs a quantized
+        MiniLM language model in a local offscreen document — the model is bundled with the extension
+        and performs inference on-device. No text is sent to any API or cloud service.
+      </p>
+
+      <h3>Data storage</h3>
+      <p style="color: #ccc; font-size: 14px; line-height: 1.7; margin-bottom: 16px;">
+        Your settings (enabled state, sensitivity threshold, display mode, and custom detection
+        patterns) are stored using <code style="color: #e94560;">chrome.storage.sync</code>, which
+        syncs preferences across your signed-in Chrome browsers via your Google account. Session
+        statistics (posts scanned, posts blocked) are stored in <code style="color: #e94560;">chrome.storage.local</code>
+        and do not sync. No data is stored anywhere else.
+      </p>
+
+      <h3>No collection, no tracking</h3>
+      <p style="color: #ccc; font-size: 14px; line-height: 1.7; margin-bottom: 16px;">
+        LinkedIn Detox does not collect, store, or transmit any personal data. There are no analytics,
+        no telemetry, no cookies, and no third-party services. The extension does not track which
+        posts you view, which posts are flagged, or any other browsing behavior.
+      </p>
+
+      <h3>Permissions explained</h3>
+      <ul style="color: #ccc; font-size: 14px; line-height: 1.9; margin-bottom: 16px; padding-left: 20px;">
+        <li><strong>Host permissions (linkedin.com)</strong> — Read feed post text and modify the page to hide or replace flagged posts.</li>
+        <li><strong>Storage</strong> — Persist your settings and session stats locally.</li>
+        <li><strong>Offscreen</strong> — Run the local ML model for semantic detection in a background document (the service worker lacks the required WebAssembly support).</li>
+      </ul>
+
+      <h3>Open source</h3>
+      <p style="color: #ccc; font-size: 14px; line-height: 1.7; margin-bottom: 16px;">
+        The full source code is available at
+        <a href="https://github.com/OdinMB/linkedin-detox" target="_blank" style="color: #e94560;">github.com/OdinMB/linkedin-detox</a>.
+        You can verify every claim on this page by reading the code.
+      </p>
+
+      <h3>Contact</h3>
+      <p style="color: #ccc; font-size: 14px; line-height: 1.7;">
+        Questions or concerns? Open an issue on
+        <a href="https://github.com/OdinMB/linkedin-detox/issues" target="_blank" style="color: #e94560;">GitHub</a>
+        or reach out at <a href="https://odins.website" target="_blank" style="color: #e94560;">odins.website</a>.
+      </p>
     </div>
   </div>
 

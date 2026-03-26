@@ -89,6 +89,18 @@ Uses vitest. Tests cover the detection engine -- the part that actually matters.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). PRs welcome, especially if you have new roast messages.
 
+## Privacy
+
+**Your data never leaves your device.**
+
+All detection happens entirely within your browser. The heuristic scorers run synchronous pattern matching in the content script. The optional semantic scorer runs a quantized MiniLM model in a local offscreen document -- the model is bundled with the extension and performs inference on-device. No text is sent to any API or cloud service.
+
+- **No data collection** -- no analytics, no telemetry, no cookies, no third-party services
+- **No tracking** -- the extension does not record which posts you view or which posts are flagged
+- **Local storage only** -- settings sync via `chrome.storage.sync` (your Google account); session stats stay in `chrome.storage.local`
+
+Full privacy policy available in the extension's Settings > Privacy tab.
+
 ## License
 
 [MIT](LICENSE) -- do whatever you want with it. If LinkedIn sends a cease and desist, that just means it's working.
