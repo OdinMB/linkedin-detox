@@ -1,0 +1,94 @@
+# LinkedIn Detox
+
+**Your feed deserves better.**
+
+A Chrome extension that detects AI-generated slop on LinkedIn and replaces it with something honest. Spotted a post that reeks of ChatGPT? LinkedIn Detox catches it, scores it, and either hides it or drops a snarky roast banner right on top.
+
+![LinkedIn Detox in action](icons/screenshot.png)
+
+## What It Catches
+
+LinkedIn Detox runs every post through a multi-layered detection pipeline:
+
+- **Em dash & ellipsis abuse** -- because real humans -- don't write -- like this...
+- **Buzzword density** -- leverage, synergy, unlock, align, disrupt, and the rest of the LinkedIn bingo card
+- **Thought-leader templates** -- "I'm humbled to share..." / "Unpopular opinion, but..." (it's never unpopular)
+- **AI semantic matching** (opt-in) -- a small embedding model that catches rephrased slop your regex can't
+
+One strong signal is all it takes. Your feed gets cleaner, one post at a time.
+
+## The Banners
+
+When a post gets caught, it doesn't just disappear. It gets *roasted*.
+
+Each flagged post is replaced with a randomly selected banner and message:
+
+<p align="center">
+  <img src="icons/banners/robot-writer.png" width="200" alt="Robot Writer">
+  <img src="icons/banners/slop-factory.png" width="200" alt="Slop Factory">
+  <img src="icons/banners/thought-leader.png" width="200" alt="Thought Leader">
+  <img src="icons/banners/recycled-content.png" width="200" alt="Recycled Content">
+</p>
+
+Sample roasts include:
+
+> *"This post was mass-produced in the LinkedIn Cringe Factory."*
+
+> *"Somewhere, a ChatGPT prompt just shed a tear of pride."*
+
+> *"Another day, another thought leader who let AI do the thinking."*
+
+> *"The algorithm thought you'd love this. The algorithm was wrong."*
+
+## Install
+
+No app store, no build step, no npm install. Just Chrome.
+
+1. Clone or download this repo
+2. Open `chrome://extensions/`
+3. Enable **Developer mode** (top right toggle)
+4. Click **Load unpacked** and select the project folder
+5. Navigate to [linkedin.com](https://www.linkedin.com) and watch the magic happen
+
+## Settings
+
+Click the extension icon to open the popup:
+
+- **Roast / Hide** -- replace posts with banners, or just make them disappear
+- **Sensitivity** -- Chill, Suspicious, or Unhinged (you know which one you want)
+- **AI Detection** -- opt-in semantic scoring for catching rephrased slop (downloads ~5MB model on first use)
+- **Custom Patterns** -- add your own signal words and co-occurrence patterns for that coworker who keeps posting AI-generated "insights"
+- **Test Mode** -- debug overlay that shows scores and triggers on every post
+
+## How It Works
+
+The detection engine scores posts from 0-100 using independent scorers. The final score is `max(all_scores)` -- one strong signal is enough. Posts above your sensitivity threshold get blocked.
+
+The extension watches LinkedIn's feed with a MutationObserver, hashes post text (because LinkedIn virtualizes its DOM and element refs don't persist), and overlays banners on flagged posts every render frame.
+
+For the technically curious, the semantic scorer runs a quantized [MiniLM](https://huggingface.co/Xenova/all-MiniLM-L6-v2) model in a Web Worker, comparing post sentences against ~50 canonical AI-slop phrase types via cosine similarity. It catches the posts that swap "leverage" for "harness" and think they're being original.
+
+## Development
+
+After changing code:
+
+1. Click the refresh icon on the extension card in `chrome://extensions/`
+2. Reload the LinkedIn tab
+
+That's it. No bundler, no transpiler, no webpack config longer than the actual code.
+
+### Tests
+
+```bash
+npm test
+```
+
+Uses vitest. Tests cover the detection engine -- the part that actually matters.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). PRs welcome, especially if you have new roast messages.
+
+## License
+
+[MIT](LICENSE) -- do whatever you want with it. If LinkedIn sends a cease and desist, that just means it's working.
