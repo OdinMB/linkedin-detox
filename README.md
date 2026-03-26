@@ -2,7 +2,7 @@
 
 **Your feed deserves better.**
 
-A Chrome extension that detects AI-generated slop on LinkedIn and replaces it with something honest. Spotted a post that reeks of ChatGPT? LinkedIn Detox catches it, scores it, and either hides it or drops a snarky roast banner right on top.
+A Chrome extension that detects AI-generated slop on LinkedIn and either hides it or drops a snarky roast banner right on top.
 
 ![LinkedIn Detox in action](icons/screenshot.png)
 
@@ -13,13 +13,13 @@ LinkedIn Detox runs every post through a multi-layered detection pipeline:
 - **Em dash & ellipsis abuse** -- because real humans -- don't write -- like this...
 - **Buzzword density** -- leverage, synergy, unlock, align, disrupt, and the rest of the LinkedIn bingo card
 - **Thought-leader templates** -- "I'm humbled to share..." / "Unpopular opinion, but..." (it's never unpopular)
-- **AI semantic matching** (opt-in) -- a small embedding model that catches rephrased slop your regex can't
+- **AI semantic matching** (opt-in) -- a small embedding model that catches slightly rephrased slop
 
 One strong signal is all it takes. Your feed gets cleaner, one post at a time.
 
 ## The Banners
 
-When a post gets caught, it doesn't just disappear. It gets *roasted*.
+When a post gets caught, it doesn't just disappear. It gets _roasted_.
 
 Each flagged post is replaced with a randomly selected banner and message:
 
@@ -32,13 +32,13 @@ Each flagged post is replaced with a randomly selected banner and message:
 
 Sample roasts include:
 
-> *"This post was mass-produced in the LinkedIn Cringe Factory."*
+> _"This post was mass-produced in the LinkedIn Cringe Factory."_
 
-> *"Somewhere, a ChatGPT prompt just shed a tear of pride."*
+> _"Somewhere, a ChatGPT prompt just shed a tear of pride."_
 
-> *"Another day, another thought leader who let AI do the thinking."*
+> _"Another day, another thought leader who let AI do the thinking."_
 
-> *"The algorithm thought you'd love this. The algorithm was wrong."*
+> _"The algorithm thought you'd love this. The algorithm was wrong."_
 
 ## Install
 

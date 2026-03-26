@@ -26,9 +26,12 @@ Chrome extension that detects AI-generated slop on LinkedIn and either hides it 
 │   │   └── transformers.min.js # @xenova/transformers CJS bundle
 │   ├── content.js          # Content script — feed observer + DOM manipulation
 │   ├── content.css         # Injected styles for banners and hidden posts
-│   └── popup/
-│       ├── popup.html      # Settings popup UI
-│       └── popup.js        # Popup logic — phrase management, mode toggle
+│   ├── popup/
+│   │   ├── popup.html      # Quick-controls popup (enabled, mode, sensitivity)
+│   │   └── popup.js        # Popup logic — opens options page for full config
+│   └── options/
+│       ├── options.html    # Full config page (patterns, semantic, debug)
+│       └── options.js      # Options logic — pattern management, phrase embedding
 ├── scripts/
 │   └── build-embeddings.js # Node script to regenerate phrase-embeddings.json
 ├── .context/               # Architecture docs
