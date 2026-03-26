@@ -115,6 +115,7 @@ The embedding model needs full browser APIs (WebAssembly, Workers, Atomics) that
 
 - **[Semantic Scoring](.context/semantic-scoring.md)** — The semantic scorer uses a two-pass async architecture; changes to scoring, worker protocol, or phrase bank must respect this flow. Details on components, data flow, and key decisions.
 - **[LinkedIn DOM Challenges](.context/linkedin-dom-challenges.md)** — LinkedIn virtualizes its feed; the extension uses text hashing instead of element refs. Details on the overlay approach.
+- **[Permissions](.context/permissions.md)** — Why each manifest permission exists, what uses it, and what was removed.
 
 ## Conventions
 

@@ -3,7 +3,7 @@
   "name": "LinkedIn Detox",
   "version": "0.1.0",
   "description": "Hide AI-generated slop from your LinkedIn feed. Replace it with something honest.",
-  "permissions": ["storage", "activeTab", "offscreen"],
+  "permissions": ["storage", "offscreen"],
   "host_permissions": ["https://www.linkedin.com/*", "https://linkedin.com/*"],
   "options_ui": {
     "page": "src/options/options.html",
