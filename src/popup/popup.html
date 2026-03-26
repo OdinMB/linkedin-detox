@@ -121,29 +121,9 @@
       font-weight: 600;
     }
 
-    /* Threshold slider */
-    .threshold-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .threshold-row input[type="range"] {
-      flex: 1;
-      accent-color: #e94560;
-    }
-
-    .threshold-value {
-      font-size: 13px;
-      font-weight: 700;
-      color: #e94560;
-      min-width: 30px;
-      text-align: right;
-    }
-
-    /* Phrase list */
-    .phrase-list {
-      max-height: 200px;
+    /* Pattern list */
+    .pattern-list {
+      max-height: 150px;
       overflow-y: auto;
       border: 1px solid #333;
       border-radius: 6px;
@@ -151,7 +131,7 @@
       margin-bottom: 8px;
     }
 
-    .phrase-item {
+    .pattern-item {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -160,9 +140,9 @@
       border-radius: 4px;
     }
 
-    .phrase-item:hover { background: rgba(255,255,255,0.05); }
+    .pattern-item:hover { background: rgba(255,255,255,0.05); }
 
-    .phrase-item button {
+    .pattern-item button {
       background: none;
       border: none;
       color: #666;
@@ -171,14 +151,19 @@
       padding: 0 4px;
     }
 
-    .phrase-item button:hover { color: #e94560; }
+    .pattern-item button:hover { color: #e94560; }
 
-    .add-phrase {
-      display: flex;
-      gap: 6px;
+    .pattern-item.readonly {
+      color: #888;
     }
 
-    .add-phrase input {
+    .add-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .add-row input {
       flex: 1;
       padding: 6px 8px;
       background: #111;
@@ -188,9 +173,9 @@
       font-size: 12px;
     }
 
-    .add-phrase input::placeholder { color: #555; }
+    .add-row input::placeholder { color: #555; }
 
-    .add-phrase button {
+    .add-row button, .add-btn {
       padding: 6px 12px;
       background: #e94560;
       border: none;
@@ -201,22 +186,51 @@
       cursor: pointer;
     }
 
-    .add-phrase button:hover { background: #c7364e; }
+    .add-row button:hover, .add-btn:hover { background: #c7364e; }
 
-    .reset-btn {
-      display: block;
-      width: 100%;
-      margin-top: 8px;
-      padding: 6px;
-      background: none;
-      border: 1px solid #333;
-      border-radius: 4px;
-      color: #666;
-      font-size: 11px;
-      cursor: pointer;
+    .cooc-inputs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 6px;
     }
 
-    .reset-btn:hover { border-color: #e94560; color: #e94560; }
+    .cooc-inputs input {
+      flex: 1;
+      padding: 6px 8px;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 4px;
+      color: #eee;
+      font-size: 11px;
+    }
+
+    .cooc-inputs input::placeholder { color: #555; }
+
+    /* Collapsible built-in patterns */
+    .collapsible-header {
+      font-size: 11px;
+      color: #666;
+      cursor: pointer;
+      padding: 4px 0;
+      user-select: none;
+    }
+
+    .collapsible-header:hover { color: #e94560; }
+
+    .collapsible-body {
+      display: none;
+      margin-top: 4px;
+    }
+
+    .collapsible-body.open {
+      display: block;
+    }
+
+    .builtin-item {
+      font-size: 11px;
+      color: #666;
+      padding: 2px 6px;
+    }
 
     /* Test mode */
     .test-mode-row { opacity: 0.8; }
@@ -231,6 +245,17 @@
       vertical-align: middle;
     }
     .switch--test input:checked + .slider { background: #e2a308; }
+
+    .subsection {
+      margin-bottom: 12px;
+    }
+
+    .subsection-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #aaa;
+      margin-bottom: 4px;
+    }
   </style>
 </head>
 <body>
@@ -267,22 +292,42 @@
   </div>
 
   <div class="section">
-    <label>Sensitivity (threshold: <span id="threshold-display">30</span>%)</label>
-    <div class="threshold-row">
-      <span style="font-size:11px;color:#666">Lenient</span>
-      <input type="range" id="threshold" min="10" max="100" step="10" value="30">
-      <span style="font-size:11px;color:#666">Strict</span>
+    <label>Sensitivity</label>
+    <div class="mode-buttons">
+      <button class="mode-btn sensitivity-btn" data-sensitivity="chill">Chill</button>
+      <button class="mode-btn sensitivity-btn active" data-sensitivity="suspicious">Suspicious</button>
+      <button class="mode-btn sensitivity-btn" data-sensitivity="unhinged">Unhinged</button>
     </div>
   </div>
 
   <div class="section">
-    <label>Blocked Phrases</label>
-    <div class="phrase-list" id="phrase-list"></div>
-    <div class="add-phrase">
-      <input type="text" id="new-phrase" placeholder="Add a phrase...">
-      <button id="add-btn">Add</button>
+    <label>Custom Patterns</label>
+
+    <div class="subsection">
+      <div class="subsection-label">Signal Words</div>
+      <div class="pattern-list" id="signal-word-list"></div>
+      <div class="add-row">
+        <input type="text" id="new-signal-word" placeholder="Add a signal word (e.g. leverage)">
+        <button id="add-signal-word-btn">Add</button>
+      </div>
+      <div class="collapsible-header" id="toggle-builtin-words">Show built-in words</div>
+      <div class="collapsible-body" id="builtin-words"></div>
     </div>
-    <button class="reset-btn" id="reset-btn">Reset to defaults</button>
+
+    <div class="subsection">
+      <div class="subsection-label">Co-occurrence Patterns</div>
+      <div class="pattern-list" id="cooc-list"></div>
+      <div class="cooc-inputs">
+        <input type="text" id="new-cooc-a" placeholder="Group A (comma-sep)">
+        <input type="text" id="new-cooc-b" placeholder="Group B (comma-sep)">
+      </div>
+      <div class="add-row">
+        <input type="text" id="new-cooc-label" placeholder="Label (e.g. humble brag)">
+        <button id="add-cooc-btn">Add</button>
+      </div>
+      <div class="collapsible-header" id="toggle-builtin-cooc">Show built-in patterns</div>
+      <div class="collapsible-body" id="builtin-cooc"></div>
+    </div>
   </div>
 
   <script src="popup.js"></script>

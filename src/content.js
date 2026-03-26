@@ -38,6 +38,10 @@ function getRandomBannerImage() {
   return chrome.runtime.getURL(path);
 }
 
+function escapeHtml(str) {
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
 // --- State ---
 
 // blockedSet: hash -> { result, roastMessage, dismissed }
@@ -103,7 +107,7 @@ function render() {
       const matchParts = [];
       matchParts.push(`Slop Score: ${entry.result.score}%`);
       if (entry.result.matches.length > 0) {
-        matchParts.push(`Triggered by: ${entry.result.matches.join(", ")}`);
+        matchParts.push(`Triggered by: ${escapeHtml(entry.result.matches.join(", "))}`);
       }
       banner.innerHTML = `
         <div class="ld-banner__header">
@@ -111,9 +115,9 @@ function render() {
           <button class="ld-banner__close" aria-label="Dismiss">&times;</button>
         </div>
         <div class="ld-banner__body">
-          <img class="ld-banner__img" src="${entry.bannerImage}" alt="" />
-          <div class="ld-banner__meta">${matchParts.join(" · ")}</div>
-          <div class="ld-banner__message">${entry.roastMessage}</div>
+          <img class="ld-banner__img" src="${escapeHtml(entry.bannerImage)}" alt="" />
+          <div class="ld-banner__meta">${escapeHtml(matchParts.join(" · "))}</div>
+          <div class="ld-banner__message">${escapeHtml(entry.roastMessage)}</div>
         </div>
       `;
       banner.querySelector(".ld-banner__close").addEventListener("click", (e) => {
@@ -186,12 +190,16 @@ function scanFeed(config) {
 
 // --- Config ---
 
+const SENSITIVITY_THRESHOLDS = { chill: 50, suspicious: 25, unhinged: 1 };
+
 const DEFAULT_CONFIG = {
   enabled: true,
   mode: "roast",
-  phrases: null,
-  threshold: 30,
+  sensitivity: "suspicious",
+  threshold: 25,
   testMode: false,
+  userSignalWords: [],
+  userCooccurrencePatterns: [],
 };
 
 let currentConfig = { ...DEFAULT_CONFIG };
@@ -199,6 +207,15 @@ let currentConfig = { ...DEFAULT_CONFIG };
 function loadConfig() {
   return new Promise((resolve) => {
     chrome.storage.sync.get(DEFAULT_CONFIG, (items) => {
+      // Derive numeric threshold from sensitivity level
+      items.threshold = SENSITIVITY_THRESHOLDS[items.sensitivity] || 25;
+      // Convert stored signal word strings to RegExp patterns
+      if (items.userSignalWords && items.userSignalWords.length > 0) {
+        items.userSignalWords = items.userSignalWords.map((w) => {
+          const escaped = w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+          return new RegExp(`\\b${escaped}(s|ed|ing|er|ly|tion|ment)?\\b`, "gi");
+        });
+      }
       currentConfig = { ...items, _blocked: 0 };
       resolve(currentConfig);
     });
