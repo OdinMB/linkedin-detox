@@ -53,14 +53,20 @@ The detection pipeline lives in `src/detector.js` with a single entry point:
 analyzePost(text, config) -> { blocked: bool, score: number, matches: string[] }
 ```
 
-**Phase 1 (current):** Phrase-based matching. Checks post text against a configurable blocklist.
+Three signal-based scorers, each returning `{ score: 0-100, matches: string[] }`:
 
-**Phase 2 (future):** Add scorer functions to the `SCORERS` array in `detector.js`. Each scorer returns `{ score, matches }`. Scores are averaged across all scorers. This is the extension point for heuristic detection (emoji density, buzzword frequency, list patterns, etc.).
+1. **`emDashScorer`** — Counts em dashes (`--`, `---`, `\u2014`) and ellipsis (`...`) per sentence. High density = AI signal.
+2. **`wordFrequencyScorer`** — Measures density of AI-typical words (leverage, synergy, unlock, etc.) using regex patterns that capture morphological variants. Accepts optional user-defined patterns.
+3. **`cooccurrenceScorer`** — Detects thought-leader sentence templates by checking if signal words from different groups appear in the same sentence (e.g., "humbled" + "share"). Accepts optional user-defined patterns.
+
+**Scoring combination:** `finalScore = max(allScores)`. One strong signal is enough to flag a post. The threshold slider in the popup controls sensitivity.
+
+**User-defined patterns** are stored in `chrome.storage.sync` as `userSignalWords` (word strings, converted to RegExp by `content.js`) and `userCooccurrencePatterns` (group arrays with labels).
 
 ## Conventions
 
 - No build tools — keep it loadable directly as an unpacked extension
 - All state in `chrome.storage.sync` (syncs across devices)
 - Session stats in `chrome.storage.local` (doesn't sync)
-- Default phrases are duplicated in `detector.js` and `popup.js` — keep them in sync
 - Detector interface is stable: always return `{ blocked, score, matches }`
+- Tests use vitest (`npm test`) — detector.js exports via conditional `module.exports` for testing
