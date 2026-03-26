@@ -1,88 +1,112 @@
 /* LinkedIn Detox — injected styles */
 
-.ld-hidden {
-  display: none !important;
+/* Overlay container lives outside React's tree */
+#ld-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  overflow: visible;
 }
 
-.ld-roast-banner {
-  position: relative;
-  margin: 8px 0;
-  padding: 16px 20px;
+.ld-banner {
+  position: fixed;
+  pointer-events: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 20px 16px;
   background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  border: 1px solid #e94560;
-  border-radius: 8px;
+  border: 1px solid rgba(233, 69, 96, 0.4);
+  border-radius: 12px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   color: #eee;
   font-size: 14px;
   line-height: 1.5;
+  box-sizing: border-box;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(233, 69, 96, 0.1);
 }
 
-.ld-roast-banner__title {
+/* Header row — title left, close button right */
+.ld-banner__header {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 0;
+  flex-shrink: 0;
+}
+
+.ld-banner__title {
   font-weight: 700;
-  font-size: 15px;
+  font-size: 14px;
   color: #e94560;
-  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
-.ld-roast-banner__score {
-  display: inline-block;
-  background: #e94560;
-  color: #fff;
+/* Close button — right side of header */
+.ld-banner__close {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 6px;
+  color: #888;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.ld-banner__close:hover {
+  background: rgba(233, 69, 96, 0.25);
+  color: #e94560;
+  border-color: rgba(233, 69, 96, 0.4);
+}
+
+/* Body — fills remaining space, centers content vertically */
+.ld-banner__body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+}
+
+/* Banner illustration — large, centered */
+.ld-banner__img {
+  max-width: 60%;
+  max-height: 45%;
+  object-fit: contain;
+  flex-shrink: 1;
+  margin-bottom: 8px;
+}
+
+/* Score + triggers — small, subdued, single row */
+.ld-banner__meta {
   font-size: 11px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 10px;
+  color: #666;
+  text-align: center;
+  margin-bottom: 10px;
 }
 
-.ld-roast-banner__message {
+/* Roast quote — large, centered */
+.ld-banner__message {
   color: #ccc;
   font-style: italic;
-}
-
-.ld-roast-banner__matches {
-  margin-top: 8px;
-  font-size: 12px;
-  color: #888;
-}
-
-.ld-roast-banner__peek {
-  margin-top: 10px;
-  background: none;
-  border: 1px solid #555;
-  border-radius: 4px;
-  color: #888;
-  font-size: 12px;
-  padding: 4px 10px;
-  cursor: pointer;
-}
-
-.ld-roast-banner__peek:hover {
-  border-color: #e94560;
-  color: #e94560;
-}
-
-.ld-roast-banner__original {
-  margin-top: 10px;
-  padding: 10px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 4px;
-  font-size: 13px;
-  color: #999;
-  max-height: 200px;
-  overflow-y: auto;
-  display: none;
-}
-
-.ld-roast-banner__original--visible {
-  display: block;
-}
-
-/* Counter badge on extension icon (via popup) */
-.ld-stats {
-  font-size: 12px;
-  color: #888;
-  margin-top: 8px;
+  font-size: 22px;
+  text-align: center;
+  line-height: 1.4;
 }
