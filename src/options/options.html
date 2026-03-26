@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LinkedIn Detox — Slop Radar Settings</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #1a1a2e;
+      color: #eee;
+      padding: 40px;
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 26px;
+      color: #e94560;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #999;
+      margin-bottom: 24px;
+    }
+
+    /* Tabs */
+    .tab-bar {
+      display: flex;
+      gap: 0;
+      margin-bottom: 24px;
+      border-bottom: 1px solid #333;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px 16px;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: #888;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+
+    .tab-btn:hover { color: #ccc; }
+
+    .tab-btn.active {
+      color: #e94560;
+      border-bottom-color: #e94560;
+    }
+
+    .tab-panel {
+      display: none;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    h3 {
+      font-size: 16px;
+      color: #ccc;
+      margin-bottom: 8px;
+    }
+
+    .section {
+      margin-bottom: 24px;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .toggle-row span {
+      font-size: 15px;
+    }
+
+    .toggle-desc {
+      font-size: 13px;
+      color: #999;
+      margin: -8px 0 16px 0;
+      line-height: 1.5;
+    }
+
+    /* Toggle switch */
+    .switch {
+      position: relative;
+      width: 40px;
+      height: 22px;
+      flex-shrink: 0;
+    }
+
+    .switch input { opacity: 0; width: 0; height: 0; }
+
+    .slider {
+      position: absolute;
+      inset: 0;
+      background: #333;
+      border-radius: 22px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .slider::before {
+      content: "";
+      position: absolute;
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background: #888;
+      border-radius: 50%;
+      transition: 0.2s;
+    }
+
+    .switch input:checked + .slider { background: #e94560; }
+    .switch input:checked + .slider::before {
+      transform: translateX(18px);
+      background: #fff;
+    }
+
+    .switch--semantic input:checked + .slider { background: #6366f1; }
+    .switch--debug input:checked + .slider { background: #e2a308; }
+
+    /* Badges */
+    .beta-badge {
+      font-size: 10px;
+      font-weight: 700;
+      background: #6366f1;
+      color: #fff;
+      padding: 1px 5px;
+      border-radius: 3px;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+
+    .debug-badge {
+      font-size: 10px;
+      font-weight: 700;
+      background: #e2a308;
+      color: #1a1a2e;
+      padding: 1px 5px;
+      border-radius: 3px;
+      margin-left: 4px;
+      vertical-align: middle;
+    }
+
+    /* Subsections */
+    .subsection {
+      margin-bottom: 16px;
+    }
+
+    /* Pattern list */
+    .pattern-list {
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 6px;
+      margin-bottom: 8px;
+    }
+
+    .pattern-list:empty::after {
+      content: "Nothing here yet. Add your own below.";
+      color: #555;
+      font-size: 13px;
+      padding: 4px;
+    }
+
+    .pattern-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 6px;
+      font-size: 14px;
+      border-radius: 4px;
+    }
+
+    .pattern-item:hover { background: rgba(255,255,255,0.05); }
+
+    .pattern-item button {
+      background: none;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      font-size: 16px;
+      padding: 0 4px;
+    }
+
+    .pattern-item button:hover { color: #e94560; }
+
+    .add-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .add-row input {
+      flex: 1;
+      padding: 8px 10px;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 4px;
+      color: #eee;
+      font-size: 14px;
+    }
+
+    .add-row input::placeholder { color: #555; }
+
+    .add-row button, .add-btn {
+      padding: 8px 14px;
+      background: #e94560;
+      border: none;
+      border-radius: 4px;
+      color: #fff;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .add-row button:hover, .add-btn:hover { background: #c7364e; }
+
+    .cooc-inputs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .cooc-inputs input {
+      flex: 1;
+      padding: 8px 10px;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 4px;
+      color: #eee;
+      font-size: 14px;
+    }
+
+    .cooc-inputs input::placeholder { color: #555; }
+
+    /* Collapsible built-in patterns */
+    .collapsible-header {
+      font-size: 13px;
+      color: #888;
+      cursor: pointer;
+      padding: 4px 0;
+      user-select: none;
+    }
+
+    .collapsible-header:hover { color: #e94560; }
+
+    .collapsible-body {
+      display: none;
+      margin-top: 4px;
+    }
+
+    .collapsible-body.open {
+      display: block;
+    }
+
+    .builtin-item {
+      font-size: 13px;
+      color: #888;
+      padding: 2px 6px;
+    }
+
+    /* Built-in words grid: 3 per row */
+    .builtin-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px 12px;
+    }
+
+    .builtin-grid .builtin-item {
+      padding: 2px 0;
+    }
+
+    /* Semantic phrase inputs */
+    .phrase-inputs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 6px;
+    }
+
+    .phrase-inputs input {
+      padding: 8px 10px;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 4px;
+      color: #eee;
+      font-size: 14px;
+    }
+
+    .phrase-inputs input:first-child { flex: 2; }
+    .phrase-inputs input:last-child { flex: 1; }
+
+    .embed-status {
+      font-size: 13px;
+      color: #e2a308;
+      margin-bottom: 8px;
+      min-height: 16px;
+    }
+
+    /* Footer */
+    .footer {
+      margin-top: 40px;
+      padding-top: 16px;
+      border-top: 1px solid #333;
+      font-size: 13px;
+      color: #666;
+      line-height: 1.8;
+      text-align: center;
+    }
+
+    .footer a {
+      color: #888;
+      text-decoration: none;
+    }
+
+    .footer a:hover { color: #e94560; }
+
+    .footer .sep { margin: 0 6px; }
+  </style>
+</head>
+<body>
+  <h1>Slop Radar Settings</h1>
+  <div class="subtitle">Fine-tune your defenses against LinkedIn's finest AI-generated wisdom.</div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="heuristics">Heuristics</button>
+    <button class="tab-btn" data-tab="semantics">Semantics</button>
+    <button class="tab-btn" data-tab="settings">Settings</button>
+  </div>
+
+  <!-- Tab: Heuristics -->
+  <div class="tab-panel active" id="tab-heuristics">
+    <div class="subsection">
+      <h3>Signal Words</h3>
+      <div class="toggle-desc">Words that scream "a robot wrote this." When enough of these pile up in a post, it gets flagged.</div>
+      <div class="pattern-list" id="signal-word-list"></div>
+      <div class="add-row">
+        <input type="text" id="new-signal-word" placeholder="Add a sus word (e.g. leverage)">
+        <button id="add-signal-word-btn">Add</button>
+      </div>
+      <div class="collapsible-header" id="toggle-builtin-words">Show the usual suspects</div>
+      <div class="collapsible-body" id="builtin-words"></div>
+    </div>
+
+    <div class="subsection">
+      <h3>Co-occurrence Patterns</h3>
+      <div class="toggle-desc">Word combos that reek of thought-leader templates. When Group A meets Group B in the same sentence, we know what's up.</div>
+      <div class="pattern-list" id="cooc-list"></div>
+      <div class="cooc-inputs">
+        <input type="text" id="new-cooc-a" placeholder="Group A (comma-sep)">
+        <input type="text" id="new-cooc-b" placeholder="Group B (comma-sep)">
+      </div>
+      <div class="add-row">
+        <input type="text" id="new-cooc-label" placeholder="Label (e.g. humble brag)">
+        <button id="add-cooc-btn">Add</button>
+      </div>
+      <div class="collapsible-header" id="toggle-builtin-cooc">Show built-in combos</div>
+      <div class="collapsible-body" id="builtin-cooc"></div>
+    </div>
+  </div>
+
+  <!-- Tab: Semantics -->
+  <div class="tab-panel" id="tab-semantics">
+    <div class="section">
+      <div class="toggle-row">
+        <span>Enable the meaning machine <span class="beta-badge">BETA</span></span>
+        <label class="switch switch--semantic">
+          <input type="checkbox" id="toggle-semantic">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="toggle-desc">Runs a small language model (MiniLM, ~5MB on first load) that catches AI slop by meaning, not just keywords. Detects rephrased cliches that heuristics miss. May slow things down on older machines.</div>
+    </div>
+
+    <div class="subsection">
+      <div class="collapsible-header" id="toggle-builtin-phrases">Show the ~50 built-in phrase variations we sniff for</div>
+      <div class="collapsible-body" id="builtin-phrases"></div>
+    </div>
+
+    <div class="subsection">
+      <h3>Custom Phrases</h3>
+      <div class="toggle-desc">Spotted a new flavor of slop? Add it here. Each phrase gets embedded by the model and matched against posts by semantic similarity.</div>
+      <div class="pattern-list" id="phrase-list"></div>
+      <div class="phrase-inputs">
+        <input type="text" id="new-phrase-sentence" placeholder="Phrase (e.g. &quot;I'm humbled to announce...&quot;)">
+        <input type="text" id="new-phrase-label" placeholder="Label">
+      </div>
+      <div class="add-row">
+        <button id="add-phrase-btn">Embed &amp; Add</button>
+      </div>
+      <div class="embed-status" id="embed-status"></div>
+    </div>
+  </div>
+
+  <!-- Tab: Settings -->
+  <div class="tab-panel" id="tab-settings">
+    <div class="section">
+      <h3>Toolbar</h3>
+      <div class="toggle-row">
+        <span>Show blocked count on extension icon</span>
+        <label class="switch">
+          <input type="checkbox" id="toggle-show-badge">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="toggle-desc">Puts a little number badge on the extension icon showing how many posts got caught this session. A small trophy counter for your sanity.</div>
+    </div>
+
+    <div class="section">
+      <h3>Debug</h3>
+      <div class="toggle-row">
+        <span>Test Banner Overlays <span class="debug-badge">DEBUG</span></span>
+        <label class="switch switch--debug">
+          <input type="checkbox" id="toggle-test-mode">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="toggle-desc">Forces roast banners on the 3rd and 5th posts in your feed, no matter what they say. Handy for checking that banners render and position correctly. Reload your LinkedIn tab after flipping this.</div>
+
+      <div class="toggle-row">
+        <span>Show Browser Logs <span class="debug-badge">DEBUG</span></span>
+        <label class="switch switch--debug">
+          <input type="checkbox" id="toggle-debug-logging">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="toggle-desc">Dumps detection scores, scan timing, and config into the browser console (DevTools > Console). Turn this on when something seems off.</div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <a href="https://github.com/OdinMB/linkedin-detox" target="_blank">GitHub</a>
+    <span class="sep">|</span>
+    <a href="https://github.com/OdinMB/linkedin-detox/blob/main/LICENSE" target="_blank">MIT License</a>
+    <span class="sep">|</span>
+    Made by <a href="https://odins.website" target="_blank">Odin Muhlenbein</a>
+    <span class="sep">|</span>
+    <a href="https://ko-fi.com/odinmb" target="_blank">Buy me a coffee</a>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>

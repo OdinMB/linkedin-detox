@@ -5,6 +5,10 @@
   "description": "Hide AI-generated slop from your LinkedIn feed. Replace it with something honest.",
   "permissions": ["storage", "activeTab", "offscreen"],
   "host_permissions": ["https://www.linkedin.com/*", "https://linkedin.com/*"],
+  "options_ui": {
+    "page": "src/options/options.html",
+    "open_in_tab": true
+  },
   "action": {
     "default_popup": "src/popup/popup.html",
     "default_icon": {

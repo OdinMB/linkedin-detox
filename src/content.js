@@ -57,9 +57,14 @@ const DEFAULT_CONFIG = {
   threshold: 25,
   testMode: false,
   semanticEnabled: false,
+  debugLogging: false,
   userSignalWords: [],
   userCooccurrencePatterns: [],
 };
+
+function log(...args) {
+  if (currentConfig.debugLogging) console.log(...args);
+}
 
 let currentConfig = { ...DEFAULT_CONFIG };
 
@@ -80,6 +85,10 @@ function loadConfig() {
 }
 
 chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && changes.userSemanticPhrases) {
+    _resetPhraseBank();
+    return;
+  }
   if (area !== "sync") return;
   for (const [key, { newValue }] of Object.entries(changes)) {
     currentConfig[key] = newValue;
@@ -267,7 +276,7 @@ function scanFeed(config) {
 
     if (config.testMode && (currentIndex === 2 || currentIndex === 4)) {
       recordBlocked(hash, { blocked: true, score: 99, matches: ["Test mode"] });
-      console.log(`[LinkedIn Detox] Test-blocked post #${currentIndex + 1} (hash=${hash})`);
+      log(`[LinkedIn Detox] Test-blocked post #${currentIndex + 1} (hash=${hash})`);
       return;
     }
 
@@ -283,7 +292,7 @@ function scanFeed(config) {
   });
 
   if (newCount > 0) {
-    console.log(`[LinkedIn Detox] Analyzed ${newCount} new posts (total: ${globalPostIndex}, blocked: ${blockedSet.size})`);
+    log(`[LinkedIn Detox] Analyzed ${newCount} new posts (total: ${globalPostIndex}, blocked: ${blockedSet.size})`);
   }
 
   render();
@@ -295,9 +304,9 @@ function scanFeed(config) {
 
 // --- Main ---
 
-console.log("[LinkedIn Detox] Content script loaded");
 loadConfig().then((config) => {
-  console.log("[LinkedIn Detox] Config:", JSON.stringify(config));
+  log("[LinkedIn Detox] Content script loaded");
+  log("[LinkedIn Detox] Config:", JSON.stringify(config));
 
   let mutationCount = 0;
   let scanScheduled = false;
@@ -317,16 +326,16 @@ loadConfig().then((config) => {
     });
     if (dominated) return;
     mutationCount++;
-    if (mutationCount <= 3) console.log(`[LinkedIn Detox] Mutation #${mutationCount}`);
+    if (mutationCount <= 3) log(`[LinkedIn Detox] Mutation #${mutationCount}`);
     scheduleScan();
   });
 
   observer.observe(document.body, { childList: true, subtree: true, characterData: true });
 
   scanFeed(config);
-  setTimeout(() => { console.log("[LinkedIn Detox] Retry scan 1s"); scanFeed(currentConfig); }, 1000);
-  setTimeout(() => { console.log("[LinkedIn Detox] Retry scan 3s"); scanFeed(currentConfig); }, 3000);
-  setTimeout(() => { console.log("[LinkedIn Detox] Retry scan 6s"); scanFeed(currentConfig); }, 6000);
+  setTimeout(() => { log("[LinkedIn Detox] Retry scan 1s"); scanFeed(currentConfig); }, 1000);
+  setTimeout(() => { log("[LinkedIn Detox] Retry scan 3s"); scanFeed(currentConfig); }, 3000);
+  setTimeout(() => { log("[LinkedIn Detox] Retry scan 6s"); scanFeed(currentConfig); }, 6000);
 
   let rafPending = false;
   function onScroll() {
@@ -340,5 +349,5 @@ loadConfig().then((config) => {
   window.addEventListener("scroll", onScroll, { passive: true, capture: true });
   window.addEventListener("resize", onScroll, { passive: true });
 
-  console.log("[LinkedIn Detox] Ready");
+  log("[LinkedIn Detox] Ready");
 });

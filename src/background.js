@@ -24,6 +24,31 @@ async function ensureOffscreen() {
   creatingOffscreen = null;
 }
 
+// --- Extension icon badge ---
+
+function updateBadge() {
+  chrome.storage.sync.get({ showBadge: false }, (syncItems) => {
+    if (!syncItems.showBadge) {
+      chrome.action.setBadgeText({ text: "" });
+      return;
+    }
+    chrome.storage.local.get({ blockedCount: 0 }, (localItems) => {
+      const count = localItems.blockedCount || 0;
+      chrome.action.setBadgeText({ text: count > 0 ? String(count) : "" });
+      chrome.action.setBadgeBackgroundColor({ color: "#e94560" });
+    });
+  });
+}
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && changes.blockedCount) updateBadge();
+  if (area === "sync" && changes.showBadge) updateBadge();
+});
+
+updateBadge();
+
+// --- Message relay ---
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type !== "embed") return;
 

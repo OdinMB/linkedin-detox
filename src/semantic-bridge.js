@@ -34,6 +34,8 @@ function _embedSentences(sentences) {
 
 let _phraseBank = null;
 
+function _resetPhraseBank() { _phraseBank = null; }
+
 async function _loadPhraseBank() {
   if (_phraseBank) return _phraseBank;
   try {
@@ -44,6 +46,17 @@ async function _loadPhraseBank() {
   } catch (err) {
     console.error("[LinkedIn Detox] Failed to load phrase embeddings:", err);
     _phraseBank = [];
+  }
+  // Merge user-defined semantic phrases from storage
+  try {
+    const items = await new Promise((resolve) =>
+      chrome.storage.local.get({ userSemanticPhrases: [] }, resolve)
+    );
+    const userPhrases = (items.userSemanticPhrases || [])
+      .filter((p) => p.embedding && p.embedding.length > 0);
+    _phraseBank = _phraseBank.concat(userPhrases);
+  } catch (err) {
+    console.error("[LinkedIn Detox] Failed to load user semantic phrases:", err);
   }
   return _phraseBank;
 }
