@@ -1,12 +1,12 @@
-<p align="center">
-  <img src="icons/icon128-transparent.png" width="56" alt="☢">
-  &nbsp;
-  <strong style="font-size:2em;">LinkedIn Detox</strong>
-  &nbsp;
-  <img src="icons/icon128-transparent.png" width="56" alt="☢">
-</p>
+<h1 align="center">LinkedIn Detox</h1>
 
-<h3 align="center">Your feed deserves better.</h3>
+<p align="center">
+  <img src="icons/icon128-transparent.png" width="28" alt="☢">
+  &nbsp;
+  <i>Your feed deserves better.</i>
+  &nbsp;
+  <img src="icons/icon128-transparent.png" width="28" alt="☢">
+</p>
 
 A free, open-source Chrome extension that detects AI-generated slop on LinkedIn and either hides it or drops a snarky roast banner right on top.
 
