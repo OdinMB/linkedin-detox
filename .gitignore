@@ -24,3 +24,6 @@ dist/
 .claude/settings.local.json
 nul
 NUL
+
+# Random project management files
+DOCS/
