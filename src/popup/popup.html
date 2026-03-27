@@ -3,6 +3,44 @@
   <head>
     <meta charset="UTF-8" />
     <style>
+      :root {
+        --bg-primary: #ffffff;
+        --bg-surface: #fafafa;
+        --bg-warm: #f5f3ee;
+        --bg-header: #f0ece1;
+        --accent: #7a6210;
+        --accent-secondary: #9a7b10;
+        --danger: #c0392b;
+        --danger-dark: #922b21;
+        --text-primary: #1a1a1a;
+        --text-secondary: #555555;
+        --text-muted: #888888;
+        --caution: #f5c518;
+        --caution-dark: #d4a017;
+        --border: #d0c9b8;
+        --input-bg: #f5f3ee;
+        --toggle-on: #7a6210;
+      }
+
+      [data-theme="dark"] {
+        --bg-primary: #0d0d0d;
+        --bg-surface: #1a1a1a;
+        --bg-warm: #252525;
+        --bg-header: #1a1a1a;
+        --accent: #39ff14;
+        --accent-secondary: #1a8a0a;
+        --danger: #ff3333;
+        --danger-dark: #cc0000;
+        --text-primary: #e0e0e0;
+        --text-secondary: #9e9e9e;
+        --text-muted: #666666;
+        --caution: #f5c518;
+        --caution-dark: #d4a017;
+        --border: #333333;
+        --input-bg: #1a1a1a;
+        --toggle-on: #39ff14;
+      }
+
       * {
         box-sizing: border-box;
         margin: 0;
@@ -11,10 +49,23 @@
 
       body {
         width: 360px;
-        font-family:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        background: #1a1a2e;
-        color: #eee;
+        font-family: 'Segoe UI', system-ui, sans-serif;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        padding: 0;
+      }
+
+      /* Caution tape header stripe */
+      .caution-tape {
+        height: 10px;
+        background: repeating-linear-gradient(
+          -45deg,
+          #f5c518 0px, #f5c518 8px,
+          #1a1a1a 8px, #1a1a1a 16px
+        );
+      }
+
+      .content {
         padding: 16px;
       }
 
@@ -26,30 +77,36 @@
       }
 
       h1 {
+        font-family: Impact, 'Arial Black', sans-serif;
+        font-weight: 900;
         font-size: 16px;
-        color: #e94560;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 2px;
       }
 
       .badge {
-        background: #e94560;
-        color: #fff;
+        background: var(--caution);
+        color: #1a1a1a;
+        font-family: 'Courier New', monospace;
         font-size: 11px;
         font-weight: 700;
         padding: 2px 8px;
-        border-radius: 10px;
         min-width: 20px;
         text-align: center;
       }
 
       .badge.zero {
-        background: #333;
-        color: #666;
+        background: var(--border);
+        color: var(--text-muted);
       }
 
       .subtitle {
         font-size: 11px;
-        color: #999;
+        color: var(--text-muted);
         margin-bottom: 16px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
       }
 
       .section {
@@ -58,10 +115,13 @@
 
       .section label {
         display: block;
+        font-family: Impact, 'Arial Black', sans-serif;
+        font-weight: 900;
         font-size: 13px;
-        font-weight: 600;
         margin-bottom: 6px;
-        color: #ccc;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 2px;
       }
 
       .toggle-row {
@@ -72,7 +132,11 @@
       }
 
       .toggle-row span {
+        font-family: 'Segoe UI', system-ui, sans-serif;
         font-size: 13px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
       }
 
       /* Toggle switch */
@@ -91,8 +155,7 @@
       .slider {
         position: absolute;
         inset: 0;
-        background: #333;
-        border-radius: 22px;
+        background: var(--border);
         cursor: pointer;
         transition: 0.2s;
       }
@@ -104,26 +167,26 @@
         width: 16px;
         left: 3px;
         bottom: 3px;
-        background: #888;
-        border-radius: 50%;
+        background: var(--text-muted);
+        border-radius: 2px;
         transition: 0.2s;
       }
 
       .switch input:checked + .slider {
-        background: #e94560;
+        background: var(--toggle-on);
       }
       .switch input:checked + .slider::before {
         transform: translateX(18px);
-        background: #fff;
+        background: var(--bg-primary);
       }
 
       .switch--semantic input:checked + .slider {
-        background: #6366f1;
+        background: var(--accent-secondary);
       }
 
       .toggle-desc {
         font-size: 10px;
-        color: #777;
+        color: var(--text-muted);
         line-height: 1.4;
         margin: -6px 0 12px 0;
       }
@@ -137,44 +200,60 @@
       .mode-btn {
         flex: 1;
         padding: 8px;
-        border: 1px solid #333;
-        border-radius: 6px;
+        border: 2px solid var(--border);
         background: transparent;
-        color: #ccc;
+        color: var(--text-secondary);
+        font-family: 'Segoe UI', system-ui, sans-serif;
         font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
         cursor: pointer;
         text-align: center;
         transition: 0.15s;
       }
 
       .mode-btn:hover {
-        border-color: #e94560;
+        border-color: var(--accent);
       }
 
       .mode-btn.active {
-        border-color: #e94560;
-        background: rgba(233, 69, 96, 0.15);
-        color: #e94560;
-        font-weight: 600;
+        border-color: var(--accent);
+        background: color-mix(in srgb, var(--accent) 12%, transparent);
+        color: var(--accent);
+        font-weight: 700;
       }
 
       .sensitivity-desc {
+        font-family: 'Courier New', monospace;
         font-size: 10px;
-        color: #999;
+        color: var(--text-muted);
         margin-top: 6px;
         line-height: 1.4;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      /* Divider */
+      .divider {
+        height: 1px;
+        background: var(--border);
+        margin: 16px 0;
       }
 
       /* Settings link */
       .settings-link {
         display: block;
         text-align: center;
+        font-family: 'Segoe UI', system-ui, sans-serif;
         font-size: 12px;
-        color: #888;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-muted);
         cursor: pointer;
         padding: 8px;
-        border: 1px solid #333;
-        border-radius: 6px;
+        border: 2px solid var(--border);
         transition: 0.15s;
         background: none;
         width: 100%;
@@ -182,85 +261,98 @@
       }
 
       .settings-link:hover {
-        color: #e94560;
-        border-color: #e94560;
+        color: var(--accent);
+        border-color: var(--accent);
       }
 
       .kofi-link {
         display: block;
         text-align: center;
         font-size: 11px;
-        color: #666;
+        color: var(--text-muted);
         text-decoration: none;
         padding: 4px;
       }
 
       .kofi-link:hover {
-        color: #e94560;
+        color: var(--accent);
       }
     </style>
   </head>
   <body>
-    <div class="header">
-      <h1>LinkedIn Detox</h1>
-      <div class="badge zero" id="blocked-badge">0</div>
-    </div>
-    <div class="subtitle">Protect your feed from thought-leader brain rot.</div>
+    <div class="caution-tape"></div>
+    <div class="content">
+      <div class="header">
+        <h1>LinkedIn Detox</h1>
+        <div class="badge zero" id="blocked-badge">0</div>
+      </div>
+      <div class="subtitle">Protect your feed from thought-leader brain rot.</div>
 
-    <div class="section">
+      <div class="section">
+        <div class="toggle-row">
+          <span>Slop filter active</span>
+          <label class="switch">
+            <input type="checkbox" id="toggle-enabled" checked />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <span>Semantic detection</span>
+          <label class="switch switch--semantic">
+            <input type="checkbox" id="toggle-semantic" />
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="toggle-desc">Uses a small local AI model to catch rephrased slop that keywords miss. May slow things down on older machines.</div>
+      </div>
+
+      <div class="section">
+        <label>When slop is detected</label>
+        <div class="mode-buttons">
+          <button class="mode-btn active" data-mode="roast">Roast it</button>
+          <button class="mode-btn" data-mode="hide">Hide it</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <label>Paranoia level</label>
+        <div class="mode-buttons">
+          <button class="mode-btn sensitivity-btn" data-sensitivity="chill">
+            Chill
+          </button>
+          <button
+            class="mode-btn sensitivity-btn active"
+            data-sensitivity="suspicious"
+          >
+            Suspicious
+          </button>
+          <button class="mode-btn sensitivity-btn" data-sensitivity="unhinged">
+            Unhinged
+          </button>
+        </div>
+        <div class="sensitivity-desc" id="sensitivity-desc">
+          Catches most AI-generated slop (score > 25).
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
       <div class="toggle-row">
-        <span>Slop filter active</span>
+        <span>Dark mode</span>
         <label class="switch">
-          <input type="checkbox" id="toggle-enabled" checked />
+          <input type="checkbox" id="toggle-theme" />
           <span class="slider"></span>
         </label>
       </div>
-      <div class="toggle-row">
-        <span>Semantic detection</span>
-        <label class="switch switch--semantic">
-          <input type="checkbox" id="toggle-semantic" />
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div class="toggle-desc">Uses a small local AI model to catch rephrased slop that keywords miss. May slow things down on older machines.</div>
+
+      <button class="settings-link" id="open-settings">
+        Settings
+      </button>
+
+      <a class="kofi-link" href="https://ko-fi.com/odinmb" target="_blank"
+        >Buy me a coffee</a
+      >
     </div>
-
-    <div class="section">
-      <label>When slop is detected</label>
-      <div class="mode-buttons">
-        <button class="mode-btn active" data-mode="roast">Roast it</button>
-        <button class="mode-btn" data-mode="hide">Hide it</button>
-      </div>
-    </div>
-
-    <div class="section">
-      <label>Paranoia level</label>
-      <div class="mode-buttons">
-        <button class="mode-btn sensitivity-btn" data-sensitivity="chill">
-          Chill
-        </button>
-        <button
-          class="mode-btn sensitivity-btn active"
-          data-sensitivity="suspicious"
-        >
-          Suspicious
-        </button>
-        <button class="mode-btn sensitivity-btn" data-sensitivity="unhinged">
-          Unhinged
-        </button>
-      </div>
-      <div class="sensitivity-desc" id="sensitivity-desc">
-        Catches most AI-generated slop (score > 25).
-      </div>
-    </div>
-
-    <button class="settings-link" id="open-settings">
-      Tune the slop radar &amp; debug
-    </button>
-
-    <a class="kofi-link" href="https://ko-fi.com/odinmb" target="_blank"
-      >Buy me a coffee</a
-    >
 
     <script src="popup.js"></script>
   </body>

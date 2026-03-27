@@ -85,6 +85,7 @@ const DEFAULT_CONFIG = {
   testMode: false,
   semanticEnabled: false,
   debugLogging: false,
+  theme: "light",
   userSignalWords: [],
   userCooccurrencePatterns: [],
 };
@@ -119,6 +120,13 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== "sync") return;
   for (const [key, { newValue }] of Object.entries(changes)) {
     currentConfig[key] = newValue;
+  }
+  // Theme-only change: re-render banners with new class, no reload needed
+  if (Object.keys(changes).length === 1 && changes.theme) {
+    liveBanners.forEach((el) => el.remove());
+    liveBanners.clear();
+    render();
+    return;
   }
   window.location.reload();
 });
@@ -209,39 +217,42 @@ function render() {
 
     activeHashes.add(hash);
 
+    const isDark = currentConfig.theme === "dark";
+
     let banner = liveBanners.get(hash);
     if (banner) {
       banner.style.top = `${rect.top}px`;
       banner.style.left = `${rect.left}px`;
       banner.style.width = `${rect.width}px`;
       banner.style.height = `${rect.height}px`;
+      banner.classList.toggle("ld-banner--dark", isDark);
       return;
     }
 
     banner = document.createElement("div");
-    banner.className = "ld-banner";
+    banner.className = "ld-banner" + (isDark ? " ld-banner--dark" : "");
     banner.style.top = `${rect.top}px`;
     banner.style.left = `${rect.left}px`;
     banner.style.width = `${rect.width}px`;
     banner.style.height = `${rect.height}px`;
 
     if (mode === "hide") {
-      banner.style.background = "#f3f2f0";
+      banner.style.background = isDark ? "#1a1a1a" : "#f3f2f0";
       banner.style.border = "none";
     } else {
-      const matchParts = [];
-      matchParts.push(`Slop Score: ${entry.result.score}%`);
-      if (entry.result.matches.length > 0) {
-        matchParts.push(`Triggered by: ${escapeHtml(entry.result.matches.join(", "))}`);
-      }
+      const triggers = entry.result.matches.length > 0
+        ? entry.result.matches.join(", ")
+        : "";
+      const metaLine = `Slop Score: ${entry.result.score}%`
+        + (triggers ? ` // Triggered by: ${escapeHtml(triggers)}` : "");
       banner.innerHTML = `
         <div class="ld-banner__header">
-          <span class="ld-banner__title">LinkedIn Detox</span>
-          <button class="ld-banner__close" data-hash="${escapeHtml(hash)}" aria-label="Dismiss">&times;</button>
+          <span class="ld-banner__title">Quarantined</span>
+          <button class="ld-banner__close" data-hash="${escapeHtml(hash)}" aria-label="Dismiss">&#x2715;</button>
         </div>
         <div class="ld-banner__body">
           <img class="ld-banner__img" src="${escapeHtml(entry.bannerImage)}" alt="" />
-          <div class="ld-banner__meta">${escapeHtml(matchParts.join(" · "))}</div>
+          <div class="ld-banner__meta">${escapeHtml(metaLine)}</div>
           <div class="ld-banner__message">${escapeHtml(entry.roastMessage)}</div>
         </div>
       `;

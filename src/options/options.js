@@ -1,7 +1,7 @@
 /**
  * LinkedIn Detox — Options Page
  *
- * Manages heuristic patterns, semantic detection phrases, and debug settings.
+ * Manages heuristic patterns, semantic detection phrases, debug settings, and theme.
  * Pattern data is stored in chrome.storage.sync (signal words, co-occurrence).
  * Semantic user phrases (with embeddings) are stored in chrome.storage.local
  * because embeddings are too large for sync quotas.
@@ -72,6 +72,8 @@ const els = {
   newPhraseLabel: document.getElementById("new-phrase-label"),
   addPhraseBtn: document.getElementById("add-phrase-btn"),
   embedStatus: document.getElementById("embed-status"),
+  // Theme
+  theme: document.getElementById("toggle-theme"),
   // Toolbar
   showBadge: document.getElementById("toggle-show-badge"),
   // Debug
@@ -82,6 +84,18 @@ const els = {
 let userSignalWords = [];
 let userCooccurrencePatterns = [];
 let userSemanticPhrases = [];
+
+// --- Theme ---
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+}
+
+function saveTheme() {
+  const theme = els.theme.checked ? "dark" : "light";
+  applyTheme(theme);
+  chrome.storage.sync.set({ theme: theme });
+}
 
 // --- Helpers ---
 
@@ -205,6 +219,7 @@ function loadState() {
       showBadge: true,
       testMode: false,
       debugLogging: false,
+      theme: "light",
       userSignalWords: [],
       userCooccurrencePatterns: [],
     },
@@ -213,6 +228,8 @@ function loadState() {
       els.showBadge.checked = items.showBadge;
       els.testMode.checked = items.testMode;
       els.debugLogging.checked = items.debugLogging;
+      els.theme.checked = items.theme === "dark";
+      applyTheme(items.theme);
 
       userSignalWords = items.userSignalWords || [];
       userCooccurrencePatterns = items.userCooccurrencePatterns || [];
@@ -262,6 +279,7 @@ els.semanticEnabled.addEventListener("change", saveToggles);
 els.showBadge.addEventListener("change", saveToggles);
 els.testMode.addEventListener("change", saveToggles);
 els.debugLogging.addEventListener("change", saveToggles);
+els.theme.addEventListener("change", saveTheme);
 
 // Signal words
 els.addSignalWordBtn.addEventListener("click", () => {
@@ -355,6 +373,15 @@ document.querySelectorAll(".tab-btn").forEach((btn) => {
     btn.classList.add("active");
     document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
   });
+});
+
+// Sync theme if changed from popup
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "sync" && changes.theme) {
+    const newTheme = changes.theme.newValue || "light";
+    els.theme.checked = newTheme === "dark";
+    applyTheme(newTheme);
+  }
 });
 
 // Init

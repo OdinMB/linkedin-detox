@@ -1,7 +1,7 @@
 /**
  * LinkedIn Detox — Popup UI
  *
- * Quick controls: enabled toggle, mode, sensitivity, blocked badge.
+ * Quick controls: enabled toggle, mode, sensitivity, blocked badge, theme.
  * Pattern configs and debug settings live on the options page.
  */
 
@@ -15,11 +15,18 @@ const SENSITIVITY_DESCS = {
 const els = {
   enabled: document.getElementById("toggle-enabled"),
   semantic: document.getElementById("toggle-semantic"),
+  theme: document.getElementById("toggle-theme"),
   modeButtons: document.querySelectorAll(".mode-btn:not(.sensitivity-btn)"),
   sensitivityButtons: document.querySelectorAll(".sensitivity-btn"),
   blockedBadge: document.getElementById("blocked-badge"),
   openSettings: document.getElementById("open-settings"),
 };
+
+// --- Theme ---
+
+function applyTheme(theme) {
+  document.documentElement.setAttribute("data-theme", theme);
+}
 
 // --- Storage ---
 
@@ -34,6 +41,12 @@ function save() {
   });
 }
 
+function saveTheme() {
+  const theme = els.theme.checked ? "dark" : "light";
+  applyTheme(theme);
+  chrome.storage.sync.set({ theme: theme });
+}
+
 function loadState() {
   chrome.storage.sync.get(
     {
@@ -41,10 +54,13 @@ function loadState() {
       semanticEnabled: false,
       mode: "roast",
       sensitivity: "suspicious",
+      theme: "light",
     },
     (items) => {
       els.enabled.checked = items.enabled;
       els.semantic.checked = items.semanticEnabled;
+      els.theme.checked = items.theme === "dark";
+      applyTheme(items.theme);
 
       els.modeButtons.forEach((btn) => {
         btn.classList.toggle("active", btn.dataset.mode === items.mode);
@@ -68,6 +84,7 @@ function loadState() {
 
 els.enabled.addEventListener("change", save);
 els.semantic.addEventListener("change", save);
+els.theme.addEventListener("change", saveTheme);
 
 els.modeButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
@@ -93,6 +110,15 @@ function updateSensitivityDesc(sensitivity) {
 
 els.openSettings.addEventListener("click", () => {
   chrome.runtime.openOptionsPage();
+});
+
+// Sync theme if changed from options page
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "sync" && changes.theme) {
+    const newTheme = changes.theme.newValue || "light";
+    els.theme.checked = newTheme === "dark";
+    applyTheme(newTheme);
+  }
 });
 
 // Init

@@ -4,26 +4,82 @@
   <meta charset="UTF-8">
   <title>LinkedIn Detox — Slop Radar Settings</title>
   <style>
+    :root {
+      --bg-primary: #ffffff;
+      --bg-surface: #fafafa;
+      --bg-warm: #f5f3ee;
+      --bg-header: #f0ece1;
+      --accent: #7a6210;
+      --accent-secondary: #9a7b10;
+      --danger: #c0392b;
+      --danger-dark: #922b21;
+      --text-primary: #1a1a1a;
+      --text-secondary: #555555;
+      --text-muted: #888888;
+      --caution: #f5c518;
+      --caution-dark: #d4a017;
+      --border: #d0c9b8;
+      --input-bg: #f5f3ee;
+      --toggle-on: #7a6210;
+    }
+
+    [data-theme="dark"] {
+      --bg-primary: #0d0d0d;
+      --bg-surface: #1a1a1a;
+      --bg-warm: #252525;
+      --bg-header: #1a1a1a;
+      --accent: #39ff14;
+      --accent-secondary: #1a8a0a;
+      --danger: #ff3333;
+      --danger-dark: #cc0000;
+      --text-primary: #e0e0e0;
+      --text-secondary: #9e9e9e;
+      --text-muted: #666666;
+      --caution: #f5c518;
+      --caution-dark: #d4a017;
+      --border: #333333;
+      --input-bg: #1a1a1a;
+      --toggle-on: #39ff14;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #1a1a2e;
-      color: #eee;
-      padding: 40px;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      padding: 0;
       max-width: 640px;
       margin: 0 auto;
     }
 
+    /* Caution tape header stripe */
+    .caution-tape {
+      height: 10px;
+      background: repeating-linear-gradient(
+        -45deg,
+        #f5c518 0px, #f5c518 8px,
+        #1a1a1a 8px, #1a1a1a 16px
+      );
+    }
+
+    .content {
+      padding: 40px;
+    }
+
     h1 {
+      font-family: Impact, 'Arial Black', sans-serif;
+      font-weight: 900;
       font-size: 26px;
-      color: #e94560;
+      color: var(--accent);
       margin-bottom: 4px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
     }
 
     .subtitle {
-      font-size: 14px;
-      color: #999;
+      font-size: 15px;
+      color: var(--text-muted);
       margin-bottom: 24px;
     }
 
@@ -32,7 +88,7 @@
       display: flex;
       gap: 0;
       margin-bottom: 24px;
-      border-bottom: 1px solid #333;
+      border-bottom: 2px solid var(--border);
     }
 
     .tab-btn {
@@ -40,19 +96,23 @@
       padding: 10px 16px;
       background: none;
       border: none;
-      border-bottom: 2px solid transparent;
-      color: #888;
-      font-size: 15px;
-      font-weight: 600;
+      border-bottom: 3px solid transparent;
+      color: var(--text-muted);
+      font-family: Impact, 'Arial Black', sans-serif;
+      font-size: 14px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 1px;
       cursor: pointer;
       transition: 0.15s;
+      margin-bottom: -2px;
     }
 
-    .tab-btn:hover { color: #ccc; }
+    .tab-btn:hover { color: var(--text-secondary); }
 
     .tab-btn.active {
-      color: #e94560;
-      border-bottom-color: #e94560;
+      color: var(--accent);
+      border-bottom-color: var(--accent);
     }
 
     .tab-panel {
@@ -64,9 +124,13 @@
     }
 
     h3 {
+      font-family: Impact, 'Arial Black', sans-serif;
+      font-weight: 900;
       font-size: 16px;
-      color: #ccc;
+      color: var(--text-secondary);
       margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
     }
 
     .section {
@@ -81,14 +145,18 @@
     }
 
     .toggle-row span {
-      font-size: 15px;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 16px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
 
     .toggle-desc {
-      font-size: 13px;
-      color: #999;
+      font-size: 14px;
+      color: var(--text-muted);
       margin: -8px 0 16px 0;
-      line-height: 1.5;
+      line-height: 1.6;
     }
 
     /* Toggle switch */
@@ -104,8 +172,7 @@
     .slider {
       position: absolute;
       inset: 0;
-      background: #333;
-      border-radius: 22px;
+      background: var(--border);
       cursor: pointer;
       transition: 0.2s;
     }
@@ -117,41 +184,45 @@
       width: 16px;
       left: 3px;
       bottom: 3px;
-      background: #888;
-      border-radius: 50%;
+      background: var(--text-muted);
+      border-radius: 2px;
       transition: 0.2s;
     }
 
-    .switch input:checked + .slider { background: #e94560; }
+    .switch input:checked + .slider { background: var(--toggle-on); }
     .switch input:checked + .slider::before {
       transform: translateX(18px);
-      background: #fff;
+      background: var(--bg-primary);
     }
 
-    .switch--semantic input:checked + .slider { background: #6366f1; }
-    .switch--debug input:checked + .slider { background: #e2a308; }
+    .switch--semantic input:checked + .slider { background: var(--accent-secondary); }
+    .switch--debug input:checked + .slider { background: var(--caution-dark); }
 
     /* Badges */
     .beta-badge {
+      font-family: 'Courier New', monospace;
       font-size: 10px;
       font-weight: 700;
-      background: #6366f1;
-      color: #fff;
+      background: var(--accent-secondary);
+      color: var(--bg-primary);
       padding: 1px 5px;
-      border-radius: 3px;
       margin-left: 4px;
       vertical-align: middle;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
     .debug-badge {
+      font-family: 'Courier New', monospace;
       font-size: 10px;
       font-weight: 700;
-      background: #e2a308;
-      color: #1a1a2e;
+      background: var(--caution);
+      color: #1a1a1a;
       padding: 1px 5px;
-      border-radius: 3px;
       margin-left: 4px;
       vertical-align: middle;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
     /* Subsections */
@@ -163,15 +234,14 @@
     .pattern-list {
       max-height: 200px;
       overflow-y: auto;
-      border: 1px solid #333;
-      border-radius: 6px;
+      border: 2px solid var(--border);
       padding: 6px;
       margin-bottom: 8px;
     }
 
     .pattern-list:empty::after {
       content: "Nothing here yet. Add your own below.";
-      color: #555;
+      color: var(--text-muted);
       font-size: 13px;
       padding: 4px;
     }
@@ -181,22 +251,21 @@
       align-items: center;
       justify-content: space-between;
       padding: 4px 6px;
-      font-size: 14px;
-      border-radius: 4px;
+      font-size: 15px;
     }
 
-    .pattern-item:hover { background: rgba(255,255,255,0.05); }
+    .pattern-item:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); }
 
     .pattern-item button {
       background: none;
       border: none;
-      color: #666;
+      color: var(--text-muted);
       cursor: pointer;
       font-size: 16px;
       padding: 0 4px;
     }
 
-    .pattern-item button:hover { color: #e94560; }
+    .pattern-item button:hover { color: var(--danger); }
 
     .add-row {
       display: flex;
@@ -207,27 +276,28 @@
     .add-row input {
       flex: 1;
       padding: 8px 10px;
-      background: #111;
-      border: 1px solid #333;
-      border-radius: 4px;
-      color: #eee;
-      font-size: 14px;
+      background: var(--input-bg);
+      border: 2px solid var(--border);
+      color: var(--text-primary);
+      font-size: 15px;
     }
 
-    .add-row input::placeholder { color: #555; }
+    .add-row input::placeholder { color: var(--text-muted); }
 
     .add-row button, .add-btn {
       padding: 8px 14px;
-      background: #e94560;
+      background: var(--accent);
       border: none;
-      border-radius: 4px;
-      color: #fff;
-      font-size: 14px;
-      font-weight: 600;
+      color: var(--bg-primary);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
       cursor: pointer;
     }
 
-    .add-row button:hover, .add-btn:hover { background: #c7364e; }
+    .add-row button:hover, .add-btn:hover { background: var(--accent-secondary); }
 
     .cooc-inputs {
       display: flex;
@@ -238,25 +308,27 @@
     .cooc-inputs input {
       flex: 1;
       padding: 8px 10px;
-      background: #111;
-      border: 1px solid #333;
-      border-radius: 4px;
-      color: #eee;
-      font-size: 14px;
+      background: var(--input-bg);
+      border: 2px solid var(--border);
+      color: var(--text-primary);
+      font-size: 15px;
     }
 
-    .cooc-inputs input::placeholder { color: #555; }
+    .cooc-inputs input::placeholder { color: var(--text-muted); }
 
     /* Collapsible built-in patterns */
     .collapsible-header {
-      font-size: 13px;
-      color: #888;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
       cursor: pointer;
       padding: 4px 0;
       user-select: none;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
-    .collapsible-header:hover { color: #e94560; }
+    .collapsible-header:hover { color: var(--accent); }
 
     .collapsible-body {
       display: none;
@@ -268,8 +340,9 @@
     }
 
     .builtin-item {
-      font-size: 13px;
-      color: #888;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
       padding: 2px 6px;
     }
 
@@ -293,229 +366,288 @@
 
     .phrase-inputs input {
       padding: 8px 10px;
-      background: #111;
-      border: 1px solid #333;
-      border-radius: 4px;
-      color: #eee;
-      font-size: 14px;
+      background: var(--input-bg);
+      border: 2px solid var(--border);
+      color: var(--text-primary);
+      font-size: 15px;
     }
 
     .phrase-inputs input:first-child { flex: 2; }
     .phrase-inputs input:last-child { flex: 1; }
 
     .embed-status {
-      font-size: 13px;
-      color: #e2a308;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: var(--caution-dark);
       margin-bottom: 8px;
       min-height: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    /* Privacy page */
+    .privacy-text {
+      color: var(--text-secondary);
+      font-size: 15px;
+      line-height: 1.7;
+      margin-bottom: 16px;
+    }
+
+    .privacy-text strong {
+      color: var(--accent);
+    }
+
+    .privacy-text code {
+      font-family: 'Courier New', monospace;
+      color: var(--accent);
+      font-size: 13px;
+    }
+
+    .privacy-text a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .privacy-text a:hover {
+      color: var(--accent-secondary);
+    }
+
+    .privacy-list {
+      color: var(--text-secondary);
+      font-size: 15px;
+      line-height: 1.9;
+      margin-bottom: 16px;
+      padding-left: 20px;
+    }
+
+    .privacy-list strong {
+      color: var(--text-primary);
     }
 
     /* Footer */
     .footer {
       margin-top: 40px;
       padding-top: 16px;
-      border-top: 1px solid #333;
-      font-size: 13px;
-      color: #666;
+      border-top: 2px solid var(--border);
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
       line-height: 1.8;
       text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
     .footer a {
-      color: #888;
+      color: var(--text-muted);
       text-decoration: none;
     }
 
-    .footer a:hover { color: #e94560; }
+    .footer a:hover { color: var(--accent); }
 
     .footer .sep { margin: 0 6px; }
   </style>
 </head>
 <body>
-  <h1>Slop Radar Settings</h1>
-  <div class="subtitle">Fine-tune your defenses against LinkedIn's finest AI-generated wisdom.</div>
+  <div class="caution-tape"></div>
+  <div class="content">
+    <h1>Slop Radar Settings</h1>
+    <div class="subtitle">Fine-tune your defenses against LinkedIn's finest AI-generated wisdom.</div>
 
-  <div class="tab-bar">
-    <button class="tab-btn active" data-tab="heuristics">Heuristics</button>
-    <button class="tab-btn" data-tab="semantics">Semantics</button>
-    <button class="tab-btn" data-tab="settings">Settings</button>
-    <button class="tab-btn" data-tab="privacy">Privacy</button>
-  </div>
-
-  <!-- Tab: Heuristics -->
-  <div class="tab-panel active" id="tab-heuristics">
-    <div class="subsection">
-      <h3>Signal Words</h3>
-      <div class="toggle-desc">Words that scream "a robot wrote this." When enough of these pile up in a post, it gets flagged.</div>
-      <div class="pattern-list" id="signal-word-list"></div>
-      <div class="add-row">
-        <input type="text" id="new-signal-word" placeholder="Add a sus word (e.g. leverage)">
-        <button id="add-signal-word-btn">Add</button>
-      </div>
-      <div class="collapsible-header" id="toggle-builtin-words">Show the usual suspects</div>
-      <div class="collapsible-body" id="builtin-words"></div>
+    <div class="tab-bar">
+      <button class="tab-btn active" data-tab="heuristics">Heuristics</button>
+      <button class="tab-btn" data-tab="semantics">Semantics</button>
+      <button class="tab-btn" data-tab="settings">Settings</button>
+      <button class="tab-btn" data-tab="privacy">Privacy</button>
     </div>
 
-    <div class="subsection">
-      <h3>Co-occurrence Patterns</h3>
-      <div class="toggle-desc">Word combos that reek of thought-leader templates. When Group A meets Group B in the same sentence, we know what's up.</div>
-      <div class="pattern-list" id="cooc-list"></div>
-      <div class="cooc-inputs">
-        <input type="text" id="new-cooc-a" placeholder="Group A (comma-sep)">
-        <input type="text" id="new-cooc-b" placeholder="Group B (comma-sep)">
+    <!-- Tab: Heuristics -->
+    <div class="tab-panel active" id="tab-heuristics">
+      <div class="subsection">
+        <h3>Signal Words</h3>
+        <div class="toggle-desc">Words that scream "a robot wrote this." When enough of these pile up in a post, it gets flagged.</div>
+        <div class="pattern-list" id="signal-word-list"></div>
+        <div class="add-row">
+          <input type="text" id="new-signal-word" placeholder="Add a sus word (e.g. leverage)">
+          <button id="add-signal-word-btn">Add</button>
+        </div>
+        <div class="collapsible-header" id="toggle-builtin-words">Show the usual suspects</div>
+        <div class="collapsible-body" id="builtin-words"></div>
       </div>
-      <div class="add-row">
-        <input type="text" id="new-cooc-label" placeholder="Label (e.g. humble brag)">
-        <button id="add-cooc-btn">Add</button>
-      </div>
-      <div class="collapsible-header" id="toggle-builtin-cooc">Show built-in combos</div>
-      <div class="collapsible-body" id="builtin-cooc"></div>
-    </div>
-  </div>
 
-  <!-- Tab: Semantics -->
-  <div class="tab-panel" id="tab-semantics">
-    <div class="section">
-      <div class="toggle-row">
-        <span>Enable the meaning machine <span class="beta-badge">BETA</span></span>
-        <label class="switch switch--semantic">
-          <input type="checkbox" id="toggle-semantic">
-          <span class="slider"></span>
-        </label>
+      <div class="subsection">
+        <h3>Co-occurrence Patterns</h3>
+        <div class="toggle-desc">Word combos that reek of thought-leader templates. E.g. "humbled" + "share" in the same sentence = classic humble brag.</div>
+        <div class="pattern-list" id="cooc-list"></div>
+        <div class="cooc-inputs">
+          <input type="text" id="new-cooc-a" placeholder="Group A (comma-sep)">
+          <input type="text" id="new-cooc-b" placeholder="Group B (comma-sep)">
+        </div>
+        <div class="add-row">
+          <input type="text" id="new-cooc-label" placeholder="Label (e.g. humble brag)">
+          <button id="add-cooc-btn">Add</button>
+        </div>
+        <div class="collapsible-header" id="toggle-builtin-cooc">Show built-in combos</div>
+        <div class="collapsible-body" id="builtin-cooc"></div>
       </div>
-      <div class="toggle-desc">Runs a small language model (MiniLM, ~5MB on first load) that catches AI slop by meaning, not just keywords. Detects rephrased cliches that heuristics miss. May slow things down on older machines.</div>
-    </div>
-
-    <div class="subsection">
-      <div class="collapsible-header" id="toggle-builtin-phrases">Show the ~50 built-in phrase variations we sniff for</div>
-      <div class="collapsible-body" id="builtin-phrases"></div>
     </div>
 
-    <div class="subsection">
-      <h3>Custom Phrases</h3>
-      <div class="toggle-desc">Spotted a new flavor of slop? Add it here. Each phrase gets embedded by the model and matched against posts by semantic similarity.</div>
-      <div class="pattern-list" id="phrase-list"></div>
-      <div class="phrase-inputs">
-        <input type="text" id="new-phrase-sentence" placeholder="Phrase (e.g. &quot;I'm humbled to announce...&quot;)">
-        <input type="text" id="new-phrase-label" placeholder="Label">
+    <!-- Tab: Semantics -->
+    <div class="tab-panel" id="tab-semantics">
+      <div class="section">
+        <div class="toggle-row">
+          <span>Enable the meaning machine <span class="beta-badge">BETA</span></span>
+          <label class="switch switch--semantic">
+            <input type="checkbox" id="toggle-semantic">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="toggle-desc">Runs a small local AI model that catches slop by meaning, not just keywords. E.g. "I'm beyond grateful for this incredible opportunity" gets caught even though none of those words are in the keyword list. May slow things down on older machines.</div>
       </div>
-      <div class="add-row">
-        <button id="add-phrase-btn">Embed &amp; Add</button>
+
+      <div class="subsection">
+        <div class="collapsible-header" id="toggle-builtin-phrases">Show the ~50 built-in phrase variations we sniff for</div>
+        <div class="collapsible-body" id="builtin-phrases"></div>
       </div>
-      <div class="embed-status" id="embed-status"></div>
+
+      <div class="subsection">
+        <h3>Custom Phrases</h3>
+        <div class="toggle-desc">Spotted a new flavor of slop? Add a phrase here and posts that say something similar will get caught. E.g. adding "I wake up at 4am" would also catch "My morning routine starts before sunrise."</div>
+        <div class="pattern-list" id="phrase-list"></div>
+        <div class="phrase-inputs">
+          <input type="text" id="new-phrase-sentence" placeholder="Phrase (e.g. &quot;I'm humbled to announce...&quot;)">
+          <input type="text" id="new-phrase-label" placeholder="Label">
+        </div>
+        <div class="add-row">
+          <button id="add-phrase-btn">Embed &amp; Add</button>
+        </div>
+        <div class="embed-status" id="embed-status"></div>
+      </div>
     </div>
-  </div>
 
-  <!-- Tab: Settings -->
-  <div class="tab-panel" id="tab-settings">
-    <div class="section">
-      <h3>Toolbar</h3>
-      <div class="toggle-row">
-        <span>Show blocked count on extension icon</span>
-        <label class="switch">
-          <input type="checkbox" id="toggle-show-badge">
-          <span class="slider"></span>
-        </label>
+    <!-- Tab: Settings -->
+    <div class="tab-panel" id="tab-settings">
+      <div class="section">
+        <h3>Appearance</h3>
+        <div class="toggle-row">
+          <span>Dark mode</span>
+          <label class="switch">
+            <input type="checkbox" id="toggle-theme">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="toggle-desc">Switch between Quarantine Notice (light) and Radioactive (dark) visual modes.</div>
       </div>
-      <div class="toggle-desc">Puts a little number badge on the extension icon showing how many posts got caught this session. A small trophy counter for your sanity.</div>
+
+      <div class="section">
+        <h3>Toolbar</h3>
+        <div class="toggle-row">
+          <span>Show blocked count on extension icon</span>
+          <label class="switch">
+            <input type="checkbox" id="toggle-show-badge">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="toggle-desc">Puts a little number badge on the extension icon showing how many posts got caught this session. A small trophy counter for your sanity.</div>
+      </div>
+
+      <div class="section">
+        <h3>Debug</h3>
+        <div class="toggle-row">
+          <span>Test Banner Overlays <span class="debug-badge">DEBUG</span></span>
+          <label class="switch switch--debug">
+            <input type="checkbox" id="toggle-test-mode">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="toggle-desc">Forces roast banners on the 3rd and 5th posts in your feed, no matter what they say. Handy for checking that banners render and position correctly. Reload your LinkedIn tab after flipping this.</div>
+
+        <div class="toggle-row">
+          <span>Show Browser Logs <span class="debug-badge">DEBUG</span></span>
+          <label class="switch switch--debug">
+            <input type="checkbox" id="toggle-debug-logging">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="toggle-desc">Dumps detection scores, scan timing, and config into the browser console (DevTools > Console). Turn this on when something seems off.</div>
+      </div>
     </div>
 
-    <div class="section">
-      <h3>Debug</h3>
-      <div class="toggle-row">
-        <span>Test Banner Overlays <span class="debug-badge">DEBUG</span></span>
-        <label class="switch switch--debug">
-          <input type="checkbox" id="toggle-test-mode">
-          <span class="slider"></span>
-        </label>
+    <!-- Tab: Privacy -->
+    <div class="tab-panel" id="tab-privacy">
+      <div class="section">
+        <h3>Privacy Policy</h3>
+        <div class="toggle-desc" style="margin-bottom: 16px;">Last updated: March 27, 2026</div>
+
+        <p class="privacy-text">
+          LinkedIn Detox is designed with a simple principle: <strong>your data never leaves your device</strong>.
+        </p>
+
+        <h3>What the extension accesses</h3>
+        <p class="privacy-text">
+          The extension reads the text content of posts in your LinkedIn feed. This text is analyzed
+          locally on your device to determine whether it appears to be AI-generated. No post content,
+          browsing activity, or personal information is ever transmitted to any external server.
+        </p>
+
+        <h3>Local processing</h3>
+        <p class="privacy-text">
+          All detection happens entirely within your browser. The heuristic scorers run synchronous
+          pattern matching in the content script. The optional semantic scorer runs a quantized
+          MiniLM language model in a local offscreen document — the model is bundled with the extension
+          and performs inference on-device. No text is sent to any API or cloud service.
+        </p>
+
+        <h3>Data storage</h3>
+        <p class="privacy-text">
+          Your settings (enabled state, sensitivity threshold, display mode, and custom detection
+          patterns) are stored using <code>chrome.storage.sync</code>, which
+          syncs preferences across your signed-in Chrome browsers via your Google account. Session
+          statistics (posts scanned, posts blocked) are stored in <code>chrome.storage.local</code>
+          and do not sync. No data is stored anywhere else.
+        </p>
+
+        <h3>No collection, no tracking, no network requests</h3>
+        <p class="privacy-text">
+          LinkedIn Detox does not collect, store, or transmit any personal data. There are no analytics,
+          no telemetry, no cookies, and no third-party services. The extension does not track which
+          posts you view, which posts are flagged, or any other browsing behavior. The extension makes
+          zero network requests — all code and model files are bundled locally.
+        </p>
+
+        <h3>Permissions explained</h3>
+        <ul class="privacy-list">
+          <li><strong>Host permissions (linkedin.com)</strong> — Read feed post text and modify the page to hide or replace flagged posts.</li>
+          <li><strong>Storage</strong> — Persist your settings and session stats locally.</li>
+          <li><strong>Offscreen</strong> — Run the local ML model for semantic detection in a background document (the service worker lacks the required WebAssembly support).</li>
+        </ul>
+
+        <h3>Open source</h3>
+        <p class="privacy-text">
+          The full source code is available at
+          <a href="https://github.com/OdinMB/linkedin-detox" target="_blank">github.com/OdinMB/linkedin-detox</a>.
+          You can verify every claim on this page by reading the code.
+        </p>
+
+        <h3>Contact</h3>
+        <p class="privacy-text">
+          Questions or concerns? Open an issue on
+          <a href="https://github.com/OdinMB/linkedin-detox/issues" target="_blank">GitHub</a>
+          or reach out at <a href="https://odins.website" target="_blank">odins.website</a>.
+        </p>
       </div>
-      <div class="toggle-desc">Forces roast banners on the 3rd and 5th posts in your feed, no matter what they say. Handy for checking that banners render and position correctly. Reload your LinkedIn tab after flipping this.</div>
-
-      <div class="toggle-row">
-        <span>Show Browser Logs <span class="debug-badge">DEBUG</span></span>
-        <label class="switch switch--debug">
-          <input type="checkbox" id="toggle-debug-logging">
-          <span class="slider"></span>
-        </label>
-      </div>
-      <div class="toggle-desc">Dumps detection scores, scan timing, and config into the browser console (DevTools > Console). Turn this on when something seems off.</div>
     </div>
-  </div>
 
-  <!-- Tab: Privacy -->
-  <div class="tab-panel" id="tab-privacy">
-    <div class="section">
-      <h3>Privacy Policy</h3>
-      <div class="toggle-desc" style="margin-bottom: 16px;">Last updated: March 27, 2026</div>
-
-      <p style="color: #ccc; font-size: 14px; line-height: 1.7; margin-bottom: 16px;">
-        LinkedIn Detox is designed with a simple principle: <strong style="color: #e94560;">your data never leaves your device</strong>.
-      </p>
-
-      <h3>What the extension accesses</h3>
-      <p style="color: #ccc; font-size: 14px; line-height: 1.7; margin-bottom: 16px;">
-        The extension reads the text content of posts in your LinkedIn feed. This text is analyzed
-        locally on your device to determine whether it appears to be AI-generated. No post content,
-        browsing activity, or personal information is ever transmitted to any external server.
-      </p>
-
-      <h3>Local processing</h3>
-      <p style="color: #ccc; font-size: 14px; line-height: 1.7; margin-bottom: 16px;">
-        All detection happens entirely within your browser. The heuristic scorers run synchronous
-        pattern matching in the content script. The optional semantic scorer runs a quantized
-        MiniLM language model in a local offscreen document — the model is bundled with the extension
-        and performs inference on-device. No text is sent to any API or cloud service.
-      </p>
-
-      <h3>Data storage</h3>
-      <p style="color: #ccc; font-size: 14px; line-height: 1.7; margin-bottom: 16px;">
-        Your settings (enabled state, sensitivity threshold, display mode, and custom detection
-        patterns) are stored using <code style="color: #e94560;">chrome.storage.sync</code>, which
-        syncs preferences across your signed-in Chrome browsers via your Google account. Session
-        statistics (posts scanned, posts blocked) are stored in <code style="color: #e94560;">chrome.storage.local</code>
-        and do not sync. No data is stored anywhere else.
-      </p>
-
-      <h3>No collection, no tracking, no network requests</h3>
-      <p style="color: #ccc; font-size: 14px; line-height: 1.7; margin-bottom: 16px;">
-        LinkedIn Detox does not collect, store, or transmit any personal data. There are no analytics,
-        no telemetry, no cookies, and no third-party services. The extension does not track which
-        posts you view, which posts are flagged, or any other browsing behavior. The extension makes
-        zero network requests — all code and model files are bundled locally.
-      </p>
-
-      <h3>Permissions explained</h3>
-      <ul style="color: #ccc; font-size: 14px; line-height: 1.9; margin-bottom: 16px; padding-left: 20px;">
-        <li><strong>Host permissions (linkedin.com)</strong> — Read feed post text and modify the page to hide or replace flagged posts.</li>
-        <li><strong>Storage</strong> — Persist your settings and session stats locally.</li>
-        <li><strong>Offscreen</strong> — Run the local ML model for semantic detection in a background document (the service worker lacks the required WebAssembly support).</li>
-      </ul>
-
-      <h3>Open source</h3>
-      <p style="color: #ccc; font-size: 14px; line-height: 1.7; margin-bottom: 16px;">
-        The full source code is available at
-        <a href="https://github.com/OdinMB/linkedin-detox" target="_blank" style="color: #e94560;">github.com/OdinMB/linkedin-detox</a>.
-        You can verify every claim on this page by reading the code.
-      </p>
-
-      <h3>Contact</h3>
-      <p style="color: #ccc; font-size: 14px; line-height: 1.7;">
-        Questions or concerns? Open an issue on
-        <a href="https://github.com/OdinMB/linkedin-detox/issues" target="_blank" style="color: #e94560;">GitHub</a>
-        or reach out at <a href="https://odins.website" target="_blank" style="color: #e94560;">odins.website</a>.
-      </p>
+    <!-- Footer -->
+    <div class="footer">
+      <a href="https://github.com/OdinMB/linkedin-detox" target="_blank">GitHub</a>
+      <span class="sep">|</span>
+      <a href="https://github.com/OdinMB/linkedin-detox/blob/main/LICENSE" target="_blank">MIT License</a>
+      <span class="sep">|</span>
+      By <a href="https://odins.website" target="_blank">Odin Muhlenbein</a>
+      <span class="sep">|</span>
+      <a href="https://ko-fi.com/odinmb" target="_blank">Buy me a coffee</a>
     </div>
-  </div>
-
-  <!-- Footer -->
-  <div class="footer">
-    <a href="https://github.com/OdinMB/linkedin-detox" target="_blank">GitHub</a>
-    <span class="sep">|</span>
-    <a href="https://github.com/OdinMB/linkedin-detox/blob/main/LICENSE" target="_blank">MIT License</a>
-    <span class="sep">|</span>
-    Made by <a href="https://odins.website" target="_blank">Odin Muhlenbein</a>
-    <span class="sep">|</span>
-    <a href="https://ko-fi.com/odinmb" target="_blank">Buy me a coffee</a>
   </div>
 
   <script src="options.js"></script>

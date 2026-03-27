@@ -35,7 +35,8 @@ function updateBadge() {
     chrome.storage.local.get({ blockedCount: 0 }, (localItems) => {
       const count = localItems.blockedCount || 0;
       chrome.action.setBadgeText({ text: count > 0 ? String(count) : "" });
-      chrome.action.setBadgeBackgroundColor({ color: "#e94560" });
+      chrome.action.setBadgeBackgroundColor({ color: "#f5c518" });
+      chrome.action.setBadgeTextColor({ color: "#1a1a1a" });
     });
   });
 }
