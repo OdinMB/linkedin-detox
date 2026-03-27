@@ -1,16 +1,16 @@
 {
   "permissions": {
     "allow": [
-      "npm install",
-      "npm test",
-      "npm run",
-      "npx vitest",
-      "node scripts/build-embeddings.js",
-      "node scripts/build-zip.js",
-      "cp node_modules/@xenova/transformers/dist/transformers.min.js src/lib/transformers.min.js",
-      "mkdir -p src/lib",
-      "wc -c src/lib/transformers.min.js",
-      "wc -c src/phrase-embeddings.json"
+      "Npm install",
+      "Npm test",
+      "Npm run",
+      "Npx vitest",
+      "Node scripts/build-embeddings.js",
+      "Node scripts/build-zip.js",
+      "Cp node_modules/@xenova/transformers/dist/transformers.min.js src/lib/transformers.min.js",
+      "Mkdir -p src/lib",
+      "Wc -c src/lib/transformers.min.js",
+      "Wc -c src/phrase-embeddings.json"
     ]
   }
 }
