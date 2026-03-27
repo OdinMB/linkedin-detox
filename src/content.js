@@ -20,6 +20,26 @@ const ROAST_MESSAGES = [
   "Removed for your sanity. You're welcome.",
   "This post was 100% organic, free-range AI output.",
   "The algorithm thought you'd love this. The algorithm was wrong.",
+  "Agree? Thoughts? Neither — this post has been vaporized.",
+  "I'm humbled and honored to announce this post has been nuked.",
+  "Plot twist: the real journey was the slop we skipped along the way.",
+  "This post had more buzzwords than a LinkedIn recruiter's DMs.",
+  "Delighted to share that this post will not be shared with you.",
+  "Fun fact: no humans were involved in the making of this post.",
+  "Another groundbreaking insight copy-pasted from the void.",
+  "This post leveraged synergy to unlock exactly nothing.",
+  "Hot take so lukewarm it needed to be put out of its misery.",
+  "Transformative leadership content has been transformed into silence.",
+  "I wake up at 4am to write posts like this. Just kidding — AI never sleeps.",
+  "This post was brought to you by the LinkedIn Storytelling Formula™.",
+  "Warning: exposure to this content may cause involuntary eye-rolling.",
+  "Nobody asked. AI answered anyway.",
+  "This post contains 47 line breaks and zero original thoughts.",
+  "Engagement bait neutralized. Your dopamine is safe.",
+  "Filed under: things that didn't need to be a LinkedIn post.",
+  "This post's only skill endorsement is 'Copy + Paste.'",
+  "Inspirational story fabrication detected. Moving on.",
+  "The real unpopular opinion is that this post should exist.",
 ];
 
 const BANNER_IMAGES = [
@@ -27,6 +47,13 @@ const BANNER_IMAGES = [
   "icons/banners/slop-factory.png",
   "icons/banners/thought-leader.png",
   "icons/banners/recycled-content.png",
+  "icons/banners/buzzword-bingo.png",
+  "icons/banners/copy-paste.png",
+  "icons/banners/humble-brag.png",
+  "icons/banners/echo-chamber.png",
+  "icons/banners/engagement-bait.png",
+  "icons/banners/story-formula.png",
+  "icons/banners/emoji-flood.png",
 ];
 
 function getRandomRoast() {
