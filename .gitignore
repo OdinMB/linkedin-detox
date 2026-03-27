@@ -11,8 +11,9 @@ Thumbs.db
 # Dependencies
 node_modules/
 
-# Vendored libraries (downloaded via setup, not committed)
-src/lib/
+# Build output
+dist/
+
 
 # Environment
 .env

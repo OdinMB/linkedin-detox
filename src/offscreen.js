@@ -13,6 +13,15 @@ import { env, pipeline as createPipeline } from "./lib/transformers.min.js";
 env.backends.onnx.wasm.numThreads = 1;
 env.backends.onnx.wasm.proxy = false;
 
+// Use bundled model files only — no network requests to HuggingFace.
+env.allowRemoteModels = false;
+env.allowLocalModels = true;
+env.localModelPath = chrome.runtime.getURL("src/models/");
+
+// Disable browser Cache API — chrome-extension:// URLs are unsupported
+// schemes for Cache.put(), causing harmless but noisy errors.
+env.useBrowserCache = false;
+
 let pipelineInstance = null;
 let initPromise = null;
 
