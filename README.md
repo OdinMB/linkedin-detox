@@ -19,7 +19,9 @@ A free, open-source Chrome extension that detects AI-generated slop on LinkedIn 
 
 ## Install
 
-We hope to have LinkedIn Detox available on the Chrome Web Store soon. In the meantime, you can install it manually:
+**[Install from the Chrome Web Store](https://chromewebstore.google.com/detail/linkedin-detox/ohfgjbpefhpdkcpmnafcklgmijiageoc)** -- one click and you're done.
+
+Or install manually from source:
 
 1. **Download the code** -- click the green **Code** button at the top of this page, then **Download ZIP**. Unzip it somewhere you'll remember.
 2. Open **chrome://extensions/** in your browser
