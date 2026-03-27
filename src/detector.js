@@ -199,6 +199,22 @@ function cooccurrenceScorer(text, userPatterns) {
   return { score, matches };
 }
 
+// --- Promoted post detection ---
+
+/**
+ * Check whether a post is a promoted/sponsored post.
+ * Looks for "Promoted" as a standalone word in the first ~200 characters
+ * (the header area) to avoid false positives on posts that mention
+ * "promoted" in their body text (e.g., "I got promoted").
+ *
+ * @param {string} text - The full post text content
+ * @returns {boolean}
+ */
+function isPromotedPost(text) {
+  const header = text.slice(0, 200);
+  return /\bPromoted\b/.test(header);
+}
+
 // --- Main ---
 
 /**
@@ -267,6 +283,7 @@ if (typeof module !== "undefined" && module.exports) {
     cooccurrenceScorer,
     analyzePost,
     analyzePostAsync,
+    isPromotedPost,
     SIGNAL_WORDS,
     COOCCURRENCE_PATTERNS,
   };

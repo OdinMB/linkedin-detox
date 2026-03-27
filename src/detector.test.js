@@ -4,6 +4,7 @@ import {
   wordFrequencyScorer,
   cooccurrenceScorer,
   analyzePost,
+  isPromotedPost,
   SIGNAL_WORDS,
   COOCCURRENCE_PATTERNS,
 } from "./detector.js";
@@ -171,6 +172,40 @@ describe("cooccurrenceScorer", () => {
       "I'm thrilled to announce. Most people don't realize."
     );
     expect(result.score).toBeLessThanOrEqual(100);
+  });
+});
+
+// --- isPromotedPost ---
+
+describe("isPromotedPost", () => {
+  it("detects 'Promoted' in the header area", () => {
+    expect(isPromotedPost("Company Name\nPromoted\nCheck out our amazing product!")).toBe(true);
+  });
+
+  it("detects 'Promoted' as the first word", () => {
+    expect(isPromotedPost("Promoted\nSome ad content here")).toBe(true);
+  });
+
+  it("ignores 'Promoted' appearing after the first 200 characters", () => {
+    const longHeader = "A".repeat(201);
+    expect(isPromotedPost(longHeader + " Promoted post content")).toBe(false);
+  });
+
+  it("ignores lowercase 'promoted' even in header position", () => {
+    expect(isPromotedPost("promoted content here in first 200 chars")).toBe(false);
+  });
+
+  it("ignores lowercase 'promoted' in natural sentences", () => {
+    expect(isPromotedPost("I just got promoted to senior engineer! So excited.")).toBe(false);
+  });
+
+  it("returns false for normal posts without 'Promoted'", () => {
+    expect(isPromotedPost("Just sharing some thoughts on leadership.")).toBe(false);
+  });
+
+  it("matches 'Promoted' as a standalone word only", () => {
+    // "Promoted" embedded in another word should not match
+    expect(isPromotedPost("SelfPromoted content here")).toBe(false);
   });
 });
 

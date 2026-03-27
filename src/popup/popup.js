@@ -15,6 +15,7 @@ const SENSITIVITY_DESCS = {
 const els = {
   enabled: document.getElementById("toggle-enabled"),
   semantic: document.getElementById("toggle-semantic"),
+  promoted: document.getElementById("toggle-promoted"),
   theme: document.getElementById("toggle-theme"),
   modeButtons: document.querySelectorAll(".mode-btn:not(.sensitivity-btn)"),
   sensitivityButtons: document.querySelectorAll(".sensitivity-btn"),
@@ -35,6 +36,7 @@ function save() {
   chrome.storage.sync.set({
     enabled: els.enabled.checked,
     semanticEnabled: els.semantic.checked,
+    blockPromoted: els.promoted.checked,
     mode: document.querySelector(".mode-btn:not(.sensitivity-btn).active").dataset.mode,
     sensitivity: sensitivity,
     threshold: SENSITIVITY_THRESHOLDS[sensitivity],
@@ -52,6 +54,7 @@ function loadState() {
     {
       enabled: true,
       semanticEnabled: false,
+      blockPromoted: false,
       mode: "roast",
       sensitivity: "suspicious",
       theme: "light",
@@ -59,6 +62,7 @@ function loadState() {
     (items) => {
       els.enabled.checked = items.enabled;
       els.semantic.checked = items.semanticEnabled;
+      els.promoted.checked = items.blockPromoted;
       els.theme.checked = items.theme === "dark";
       applyTheme(items.theme);
 
@@ -84,6 +88,7 @@ function loadState() {
 
 els.enabled.addEventListener("change", save);
 els.semantic.addEventListener("change", save);
+els.promoted.addEventListener("change", save);
 els.theme.addEventListener("change", saveTheme);
 
 els.modeButtons.forEach((btn) => {

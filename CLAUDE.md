@@ -15,7 +15,7 @@ Chrome extension that detects AI-generated slop on LinkedIn and either hides it 
 ├── manifest.json           # Extension manifest (MV3)
 ├── icons/                  # Extension icons (16/48/128)
 ├── src/
-│   ├── detector.js         # Detection engine — analyzePost(text, config) + analyzePostAsync
+│   ├── detector.js         # Detection engine — analyzePost(text, config) + analyzePostAsync + isPromotedPost
 │   ├── semantic-scorer.js  # Cosine similarity scoring against phrase embeddings
 │   ├── semantic-bridge.js  # Content script — bridges to background for embedding
 │   ├── background.js       # Service worker — relays to offscreen document
@@ -98,6 +98,8 @@ Plus one optional async scorer:
 - **Pass 2 (async, only uncaught posts):** If semantic scoring is enabled and Pass 1 didn't block the post, send it to the embedding model. If the semantic score exceeds threshold, block retroactively.
 
 This means the model is never invoked for posts that heuristics already catch, keeping the common case fast.
+
+**Promoted post detection:** Before any scoring runs, `isPromotedPost(text)` checks for "Promoted" (case-sensitive, word-boundary) in the first 200 characters. If matched and `blockPromoted` is enabled, the post is blocked immediately with a distinct blue-themed banner — no slop scoring runs. This is a binary check with no threshold.
 
 **Scoring combination:** `finalScore = max(allScores)`. One strong signal is enough to flag a post. The threshold slider in the popup controls sensitivity.
 

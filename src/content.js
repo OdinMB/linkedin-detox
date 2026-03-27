@@ -56,16 +56,44 @@ const BANNER_IMAGES = [
   "icons/banners/emoji-flood.png",
 ];
 
-function getRandomRoast() {
-  return ROAST_MESSAGES[Math.floor(Math.random() * ROAST_MESSAGES.length)];
+const PROMOTED_ROAST_MESSAGES = [
+  "LinkedIn thought your attention was for sale. It's not.",
+  "This ad has been intercepted before it could waste your time.",
+  "Sponsored content neutralized. Your feed is ad-free... for now.",
+  "Someone paid money for you to see this. You're welcome for not seeing it.",
+  "This post's only qualification is a marketing budget.",
+  "Another corporation trying to disguise ads as organic content.",
+  "Pay-to-play content detected. Access denied.",
+  "This ad was so targeted it got target practice instead.",
+  "Promoted into oblivion. As all ads should be.",
+  "Your eyeballs: not for sale. This ad: blocked.",
+  "Somebody's ad budget just went to waste. Beautiful.",
+  "This sponsored post has been unsponsored from your feed.",
+  "LinkedIn ads: because regular spam wasn't enough.",
+  "Corporate has entered the chat. Corporate has been removed from the chat.",
+  "This ad thought it could sneak past. It thought wrong.",
+];
+
+const PROMOTED_BANNER_IMAGES = [
+  "icons/banners/promoted/money-shredder.png",
+  "icons/banners/promoted/ad-blocker.png",
+  "icons/banners/promoted/corporate-megaphone.png",
+  "icons/banners/promoted/spam-filter.png",
+  "icons/banners/promoted/wallet-trap.png",
+];
+
+function getRandomRoast(type) {
+  const pool = type === "promoted" ? PROMOTED_ROAST_MESSAGES : ROAST_MESSAGES;
+  return pool[Math.floor(Math.random() * pool.length)];
 }
 
 function isContextValid() {
   try { return !!chrome.runtime.id; } catch { return false; }
 }
 
-function getRandomBannerImage() {
-  const path = BANNER_IMAGES[Math.floor(Math.random() * BANNER_IMAGES.length)];
+function getRandomBannerImage(type) {
+  const pool = type === "promoted" ? PROMOTED_BANNER_IMAGES : BANNER_IMAGES;
+  const path = pool[Math.floor(Math.random() * pool.length)];
   return chrome.runtime.getURL(path);
 }
 
@@ -84,6 +112,7 @@ const DEFAULT_CONFIG = {
   threshold: 25,
   testMode: false,
   semanticEnabled: false,
+  blockPromoted: false,
   debugLogging: false,
   theme: "light",
   userSignalWords: [],
@@ -145,13 +174,14 @@ function hashText(text) {
   return String(h);
 }
 
-function recordBlocked(hash, result) {
+function recordBlocked(hash, result, type = "slop") {
   currentConfig._blocked = (currentConfig._blocked || 0) + 1;
   chrome.storage.local.set({ blockedCount: currentConfig._blocked });
   blockedSet.set(hash, {
     result,
-    roastMessage: getRandomRoast(),
-    bannerImage: getRandomBannerImage(),
+    type,
+    roastMessage: getRandomRoast(type),
+    bannerImage: getRandomBannerImage(type),
     dismissed: false,
   });
 }
@@ -229,25 +259,34 @@ function render() {
       return;
     }
 
+    const isPromoted = entry.type === "promoted";
     banner = document.createElement("div");
-    banner.className = "ld-banner" + (isDark ? " ld-banner--dark" : "");
+    banner.className = "ld-banner"
+      + (isDark ? " ld-banner--dark" : "")
+      + (isPromoted ? " ld-banner--promoted" : "");
     banner.style.top = `${rect.top}px`;
     banner.style.left = `${rect.left}px`;
     banner.style.width = `${rect.width}px`;
     banner.style.height = `${rect.height}px`;
 
     if (mode === "hide") {
-      banner.style.background = isDark ? "#1a1a1a" : "#f3f2f0";
+      banner.style.background = isPromoted
+        ? (isDark ? "#0d1b2a" : "#e8f0fe")
+        : (isDark ? "#1a1a1a" : "#f3f2f0");
       banner.style.border = "none";
     } else {
+      const bannerTitle = isPromoted ? "Ad Blocked" : "Quarantined";
       const triggers = entry.result.matches.length > 0
         ? entry.result.matches.join(", ")
         : "";
-      const metaLine = `Slop Score: ${entry.result.score}%`
-        + (triggers ? ` // Triggered by: ${escapeHtml(triggers)}` : "");
+      const metaLabel = isPromoted ? "Type" : "Slop Score";
+      const metaLine = isPromoted
+        ? `${metaLabel}: Sponsored Content`
+        : `${metaLabel}: ${entry.result.score}%`
+          + (triggers ? ` // Triggered by: ${escapeHtml(triggers)}` : "");
       banner.innerHTML = `
         <div class="ld-banner__header">
-          <span class="ld-banner__title">Quarantined</span>
+          <span class="ld-banner__title">${escapeHtml(bannerTitle)}</span>
           <button class="ld-banner__close" data-hash="${escapeHtml(hash)}" aria-label="Dismiss">&#x2715;</button>
         </div>
         <div class="ld-banner__body">
@@ -315,6 +354,13 @@ function scanFeed(config) {
     if (config.testMode && (currentIndex === 2 || currentIndex === 4)) {
       recordBlocked(hash, { blocked: true, score: 99, matches: ["Test mode"] });
       log(`[LinkedIn Detox] Test-blocked post #${currentIndex + 1} (hash=${hash})`);
+      return;
+    }
+
+    // Promoted detection — binary check, runs before slop analysis
+    if (config.blockPromoted && isPromotedPost(text)) {
+      recordBlocked(hash, { blocked: true, score: 100, matches: ["Promoted"] }, "promoted");
+      log(`[LinkedIn Detox] Promoted post blocked (hash=${hash})`);
       return;
     }
 

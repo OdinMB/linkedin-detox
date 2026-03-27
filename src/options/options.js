@@ -72,6 +72,8 @@ const els = {
   newPhraseLabel: document.getElementById("new-phrase-label"),
   addPhraseBtn: document.getElementById("add-phrase-btn"),
   embedStatus: document.getElementById("embed-status"),
+  // Filters
+  blockPromoted: document.getElementById("toggle-promoted"),
   // Theme
   theme: document.getElementById("toggle-theme"),
   // Toolbar
@@ -193,6 +195,7 @@ function renderSemanticPhrases() {
 function saveToggles() {
   chrome.storage.sync.set({
     semanticEnabled: els.semanticEnabled.checked,
+    blockPromoted: els.blockPromoted.checked,
     showBadge: els.showBadge.checked,
     testMode: els.testMode.checked,
     debugLogging: els.debugLogging.checked,
@@ -216,6 +219,7 @@ function loadState() {
   chrome.storage.sync.get(
     {
       semanticEnabled: false,
+      blockPromoted: false,
       showBadge: true,
       testMode: false,
       debugLogging: false,
@@ -225,6 +229,7 @@ function loadState() {
     },
     (items) => {
       els.semanticEnabled.checked = items.semanticEnabled;
+      els.blockPromoted.checked = items.blockPromoted;
       els.showBadge.checked = items.showBadge;
       els.testMode.checked = items.testMode;
       els.debugLogging.checked = items.debugLogging;
@@ -276,6 +281,7 @@ function embedPhrase(sentence) {
 // --- Event Listeners ---
 
 els.semanticEnabled.addEventListener("change", saveToggles);
+els.blockPromoted.addEventListener("change", saveToggles);
 els.showBadge.addEventListener("change", saveToggles);
 els.testMode.addEventListener("change", saveToggles);
 els.debugLogging.addEventListener("change", saveToggles);

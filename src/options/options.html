@@ -455,14 +455,14 @@
     <div class="subtitle">Fine-tune your defenses against LinkedIn's finest AI-generated wisdom.</div>
 
     <div class="tab-bar">
-      <button class="tab-btn active" data-tab="heuristics">Heuristics</button>
+      <button class="tab-btn active" data-tab="settings">Settings</button>
+      <button class="tab-btn" data-tab="heuristics">Heuristics</button>
       <button class="tab-btn" data-tab="semantics">Semantics</button>
-      <button class="tab-btn" data-tab="settings">Settings</button>
       <button class="tab-btn" data-tab="privacy">Privacy</button>
     </div>
 
     <!-- Tab: Heuristics -->
-    <div class="tab-panel active" id="tab-heuristics">
+    <div class="tab-panel" id="tab-heuristics">
       <div class="subsection">
         <h3>Signal Words</h3>
         <div class="toggle-desc">Words that scream "a robot wrote this." When enough of these pile up in a post, it gets flagged.</div>
@@ -526,7 +526,19 @@
     </div>
 
     <!-- Tab: Settings -->
-    <div class="tab-panel" id="tab-settings">
+    <div class="tab-panel active" id="tab-settings">
+      <div class="section">
+        <h3>Filters</h3>
+        <div class="toggle-row">
+          <span>Block promoted posts</span>
+          <label class="switch">
+            <input type="checkbox" id="toggle-promoted">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="toggle-desc">Blocks sponsored/promoted posts from your feed. No scoring, no threshold — if it's an ad, it's gone. Reload your LinkedIn tab after flipping this.</div>
+      </div>
+
       <div class="section">
         <h3>Appearance</h3>
         <div class="toggle-row">
