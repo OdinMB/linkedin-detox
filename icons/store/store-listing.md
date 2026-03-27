@@ -2,7 +2,7 @@
 
 ## Short Description (≤132 chars)
 
-Hide AI-generated slop from your LinkedIn feed. Replace it with something honest.
+Hide AI slop and block promoted posts on LinkedIn. Replace them with something honest.
 
 ## Category
 
@@ -10,7 +10,7 @@ Social & Communication
 
 ## Detailed Description
 
-Tired of LinkedIn posts that read like they were written by a motivational poster factory? LinkedIn Detox detects AI-generated slop in your feed and either hides it or replaces it with honest roast banners.
+Tired of LinkedIn posts that read like they were written by a motivational poster factory? LinkedIn Detox detects AI-generated slop in your feed and either hides it or replaces it with honest roast banners. It can also block promoted/sponsored posts — because ads disguised as content aren't any better than AI slop.
 
 How it works:
 
@@ -18,6 +18,7 @@ How it works:
 - Detects AI-slop signals: buzzword density, thought-leader templates, em dash abuse, and more
 - Optional ML-powered semantic scoring catches novel AI phrasings that keyword rules miss
 - Flagged posts get replaced with satirical, AI-generated banners (the irony!)
+- Optional promoted post blocker kills sponsored ads with a distinct blue banner
 
 You control the experience:
 
@@ -44,6 +45,7 @@ Works out of the box with zero configuration. Just install and scroll.
 | Screenshot 2 — Popup          | icons/store/screenshot-2-popup.png     | 1280x800   |
 | Screenshot 3 — Settings       | icons/store/screenshot-3-settings.png  | 1280x800   |
 | Screenshot 4 — Roast close-up | icons/store/screenshot-4-roast.png     | 1280x800   |
+| Screenshot 5 — Ad blocker     | icons/store/screenshot-linkedin-promoted.png | 1280x800   |
 | Small promo tile              | icons/store/promo-tile-440x280.png     | 440x280    |
 | Marquee promo tile            | icons/store/marquee-promo-1400x560.png | 1400x560   |
 | Store icon                    | icons/store/store-icon-128x128.png     | 128x128    |

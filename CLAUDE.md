@@ -1,6 +1,6 @@
 # LinkedIn Detox
 
-Chrome extension that detects AI-generated slop on LinkedIn and either hides it or replaces it with snarky roast banners. Built for laughs, not production.
+Chrome extension that detects AI-generated slop on LinkedIn and either hides it or replaces it with snarky roast banners. Also blocks promoted/sponsored posts. Built for laughs, not production.
 
 ## Tech Stack
 

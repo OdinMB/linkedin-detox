@@ -8,10 +8,12 @@
   <img src="icons/icon128-transparent.png" width="28" alt="☢">
 </p>
 
-A free, open-source Chrome extension that detects AI-generated slop on LinkedIn and either hides it or drops a snarky roast banner right on top.
+A free, open-source Chrome extension that detects AI-generated slop on LinkedIn and either hides it or drops a snarky roast banner right on top. Also blocks promoted/sponsored posts if you're tired of ads pretending to be content.
 
 <p align="center">
-  <img src="icons/screenshot-linkedin.png" width="640" alt="LinkedIn Detox in action">
+  <img src="icons/screenshot-linkedin.png" width="420" alt="LinkedIn Detox — slop detection">
+  &nbsp;&nbsp;
+  <img src="icons/screenshot-linkedin-promoted.png" width="420" alt="LinkedIn Detox — ad blocker">
 </p>
 
 > **Fair warning:** This is satire first, software second. The detection is based on vibes, not science -- pattern matching on buzzwords, sentence templates, and an optional embedding model that's doing its best. It will flag posts that were written by humans and miss posts that were written by machines. Do not accuse anyone of using AI because this extension roasted their post. Do not assume a post is human-written because it wasn't flagged. Treat every roast as comedy, not a verdict.
@@ -56,6 +58,7 @@ LinkedIn Detox runs every post through a multi-layered detection pipeline:
 - **Buzzword density** -- leverage, synergy, unlock, align, disrupt, and the rest of the LinkedIn bingo card
 - **Thought-leader templates** -- "I'm humbled to share..." / "Unpopular opinion, but..." (it's never unpopular)
 - **AI semantic matching** (opt-in) -- a small embedding model that catches slightly rephrased slop
+- **Promoted post blocking** (opt-in) -- detects sponsored posts and blocks them with a distinct blue banner before any slop scoring runs
 
 One strong signal is all it takes. Your feed gets cleaner, one post at a time.
 
@@ -66,6 +69,7 @@ Click the extension icon to open the popup:
 - **Roast / Hide** -- replace posts with banners, or just make them disappear
 - **Sensitivity** -- Chill, Suspicious, or Unhinged (you know which one you want)
 - **AI Detection** -- opt-in semantic scoring for catching rephrased slop (model is bundled locally, no downloads)
+- **Block Promoted Posts** -- opt-in ad blocker that kills sponsored posts with a blue-themed banner
 - **Custom Patterns** -- add your own signal words and co-occurrence patterns for that coworker who keeps posting AI-generated "insights"
 - **Test Mode** -- debug overlay that shows scores and triggers on every post
 
