@@ -22,8 +22,10 @@ Chrome extension that detects AI-generated slop on LinkedIn and either hides it 
 │   ├── offscreen.html      # Offscreen document shell
 │   ├── offscreen.js        # Loads transformers.js + MiniLM model
 │   ├── phrase-embeddings.json # Precomputed embeddings for ~50 canonical AI-slop phrase types
-│   ├── lib/                    # Vendored libraries (not checked in — see setup)
-│   │   └── transformers.min.js # @xenova/transformers CJS bundle
+│   ├── models/                 # Bundled ML model (checked in — no runtime downloads)
+│   │   └── Xenova/all-MiniLM-L6-v2/  # Quantized MiniLM for semantic scoring
+│   ├── lib/                    # Vendored libraries (checked in)
+│   │   └── transformers.min.js # @xenova/transformers CJS bundle (~877KB)
 │   ├── content.js          # Content script — feed observer + DOM manipulation
 │   ├── content.css         # Injected styles for banners and hidden posts
 │   ├── popup/
@@ -33,7 +35,8 @@ Chrome extension that detects AI-generated slop on LinkedIn and either hides it 
 │       ├── options.html    # Full config page (patterns, semantic, debug)
 │       └── options.js      # Options logic — pattern management, phrase embedding
 ├── scripts/
-│   └── build-embeddings.js # Node script to regenerate phrase-embeddings.json
+│   ├── build-embeddings.js # Node script to regenerate phrase-embeddings.json
+│   └── build-zip.js        # Node script to build Chrome Web Store zip
 ├── .context/               # Architecture docs
 ├── .plans/                 # Task plans
 │   └── completed/
@@ -58,20 +61,19 @@ Chrome extension that detects AI-generated slop on LinkedIn and either hides it 
 
 Everything is vanilla JS loaded directly by Chrome. No bundler, no transpiler.
 
-### Semantic scoring setup (one-time)
+### Bundled assets
 
-The semantic scorer requires a vendored copy of `@xenova/transformers` and precomputed phrase embeddings. These are not checked into git.
+All runtime assets are checked into git (no setup required to run the extension). Three assets may need regeneration:
 
-```bash
-npm install -D @xenova/transformers
-mkdir -p src/lib
-cp node_modules/@xenova/transformers/dist/transformers.min.js src/lib/transformers.min.js
-node scripts/build-embeddings.js
-```
+- **`src/phrase-embeddings.json`** — re-run `node scripts/build-embeddings.js` after editing canonical phrases
+- **`src/lib/transformers.min.js`** — copy from `node_modules/@xenova/transformers/dist/` after bumping the npm version
+- **`src/models/Xenova/all-MiniLM-L6-v2/`** — copy from `node_modules/@xenova/transformers/.cache/` after changing model version
 
-- `src/lib/transformers.min.js` — CJS bundle (~900KB), loaded by the Web Worker via `importScripts` with a `module.exports` shim
-- `src/phrase-embeddings.json` — 384-dimensional embeddings for 49 canonical AI-slop phrase types (~530KB)
-- Re-run `node scripts/build-embeddings.js` whenever canonical phrases in `scripts/build-embeddings.js` change
+See README > Development > "Updating bundled assets" for full commands.
+
+### Chrome Web Store zip
+
+`npm run build:zip` creates `dist/linkedin-detox-<version>.zip` with only runtime files (no tests, docs, or dev config). The script lives at `scripts/build-zip.js`.
 
 ## Architecture — Detection
 

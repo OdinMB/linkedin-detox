@@ -2,9 +2,43 @@
 
 **Your feed deserves better.**
 
-A Chrome extension that detects AI-generated slop on LinkedIn and either hides it or drops a snarky roast banner right on top.
+A free, open-source Chrome extension that detects AI-generated slop on LinkedIn and either hides it or drops a snarky roast banner right on top.
 
-![LinkedIn Detox in action](icons/screenshot.png)
+<p align="center">
+  <img src="icons/screenshot.png" width="480" alt="LinkedIn Detox in action">
+</p>
+
+> **Fair warning:** This is satire first, software second. The detection is based on vibes, not science -- pattern matching on buzzwords, sentence templates, and an optional embedding model that's doing its best. It will flag posts that were written by humans and miss posts that were written by machines. Do not accuse anyone of using AI because this extension roasted their post. Do not assume a post is human-written because it wasn't flagged. Treat every roast as comedy, not a verdict.
+
+<p align="center">
+  <img src="icons/banners/robot-writer.png" width="200" alt="Robot Writer">
+  <img src="icons/banners/slop-factory.png" width="200" alt="Slop Factory">
+  <img src="icons/banners/thought-leader.png" width="200" alt="Thought Leader">
+  <img src="icons/banners/recycled-content.png" width="200" alt="Recycled Content">
+</p>
+
+## Install
+
+We hope to have LinkedIn Detox available on the Chrome Web Store soon. In the meantime, you can install it manually:
+
+1. **Download the code** -- click the green **Code** button at the top of this page, then **Download ZIP**. Unzip it somewhere you'll remember.
+2. Open **chrome://extensions/** in your browser
+3. Enable **Developer mode** (toggle in the top right)
+4. Click **Load unpacked** and select the folder you just unzipped
+5. Navigate to [linkedin.com](https://www.linkedin.com) and watch the magic happen
+
+## Privacy
+
+**Your data never leaves your device.**
+
+All detection happens entirely within your browser. The heuristic scorers run synchronous pattern matching in the content script. The optional semantic scorer runs a quantized MiniLM model in a local offscreen document -- the model is bundled with the extension and performs inference on-device. No text is sent to any API or cloud service.
+
+- **No data collection** -- no analytics, no telemetry, no cookies, no third-party services
+- **No network requests** -- all code and model files are bundled locally; the extension never phones home
+- **No tracking** -- the extension does not record which posts you view or which posts are flagged
+- **Local storage only** -- settings sync via `chrome.storage.sync` (your Google account); session stats stay in `chrome.storage.local`
+
+Full privacy policy available in the extension's Settings > Privacy tab.
 
 ## What It Catches
 
@@ -17,46 +51,13 @@ LinkedIn Detox runs every post through a multi-layered detection pipeline:
 
 One strong signal is all it takes. Your feed gets cleaner, one post at a time.
 
-## The Banners
-
-When a post gets caught, it doesn't just disappear. It gets _roasted_.
-
-Each flagged post is replaced with a randomly selected banner and message:
-
-<p align="center">
-  <img src="icons/banners/robot-writer.png" width="200" alt="Robot Writer">
-  <img src="icons/banners/slop-factory.png" width="200" alt="Slop Factory">
-  <img src="icons/banners/thought-leader.png" width="200" alt="Thought Leader">
-  <img src="icons/banners/recycled-content.png" width="200" alt="Recycled Content">
-</p>
-
-Sample roasts include:
-
-> _"This post was mass-produced in the LinkedIn Cringe Factory."_
-
-> _"Somewhere, a ChatGPT prompt just shed a tear of pride."_
-
-> _"Another day, another thought leader who let AI do the thinking."_
-
-> _"The algorithm thought you'd love this. The algorithm was wrong."_
-
-## Install
-
-No app store, no build step, no npm install. Just Chrome.
-
-1. Clone or download this repo
-2. Open `chrome://extensions/`
-3. Enable **Developer mode** (top right toggle)
-4. Click **Load unpacked** and select the project folder
-5. Navigate to [linkedin.com](https://www.linkedin.com) and watch the magic happen
-
 ## Settings
 
 Click the extension icon to open the popup:
 
 - **Roast / Hide** -- replace posts with banners, or just make them disappear
 - **Sensitivity** -- Chill, Suspicious, or Unhinged (you know which one you want)
-- **AI Detection** -- opt-in semantic scoring for catching rephrased slop (downloads ~5MB model on first use)
+- **AI Detection** -- opt-in semantic scoring for catching rephrased slop (model is bundled locally, no downloads)
 - **Custom Patterns** -- add your own signal words and co-occurrence patterns for that coworker who keeps posting AI-generated "insights"
 - **Test Mode** -- debug overlay that shows scores and triggers on every post
 
@@ -85,21 +86,48 @@ npm test
 
 Uses vitest. Tests cover the detection engine -- the part that actually matters.
 
+### Building for the Chrome Web Store
+
+```bash
+npm run build:zip
+```
+
+Creates `dist/linkedin-detox-<version>.zip` containing only the files Chrome needs -- no tests, docs, config, or node_modules. Upload this zip to the [Chrome Developer Dashboard](https://chrome.google.com/webstore/devconsole).
+
+### Updating bundled assets
+
+The repo includes all runtime assets so that cloning or downloading the ZIP gives you a working extension with no extra steps. If you need to regenerate them:
+
+```bash
+npm install
+```
+
+**Phrase embeddings** -- regenerate after editing the canonical phrases in `scripts/build-embeddings.js`:
+
+```bash
+node scripts/build-embeddings.js
+```
+
+**Transformers.js library** -- update after bumping the `@xenova/transformers` version in `package.json`:
+
+```bash
+cp node_modules/@xenova/transformers/dist/transformers.min.js src/lib/transformers.min.js
+```
+
+**MiniLM model files** -- update after changing model version or quantization:
+
+```bash
+cp node_modules/@xenova/transformers/.cache/Xenova/all-MiniLM-L6-v2/config.json src/models/Xenova/all-MiniLM-L6-v2/
+cp node_modules/@xenova/transformers/.cache/Xenova/all-MiniLM-L6-v2/tokenizer_config.json src/models/Xenova/all-MiniLM-L6-v2/
+cp node_modules/@xenova/transformers/.cache/Xenova/all-MiniLM-L6-v2/tokenizer.json src/models/Xenova/all-MiniLM-L6-v2/
+cp node_modules/@xenova/transformers/.cache/Xenova/all-MiniLM-L6-v2/onnx/model_quantized.onnx src/models/Xenova/all-MiniLM-L6-v2/onnx/
+```
+
+Note: the model files are populated in the npm cache the first time `build-embeddings.js` runs (it triggers a download). If the cache is empty, run `node scripts/build-embeddings.js` first.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md). PRs welcome, especially if you have new roast messages.
-
-## Privacy
-
-**Your data never leaves your device.**
-
-All detection happens entirely within your browser. The heuristic scorers run synchronous pattern matching in the content script. The optional semantic scorer runs a quantized MiniLM model in a local offscreen document -- the model is bundled with the extension and performs inference on-device. No text is sent to any API or cloud service.
-
-- **No data collection** -- no analytics, no telemetry, no cookies, no third-party services
-- **No tracking** -- the extension does not record which posts you view or which posts are flagged
-- **Local storage only** -- settings sync via `chrome.storage.sync` (your Google account); session stats stay in `chrome.storage.local`
-
-Full privacy policy available in the extension's Settings > Privacy tab.
 
 ## License
 

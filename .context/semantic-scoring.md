@@ -15,7 +15,7 @@ Pure scoring logic (no browser APIs). Exports:
 ### background.js + offscreen.js
 The embedding model needs full browser APIs (WebAssembly, Workers, Atomics) that MV3 service workers lack. Architecture:
 - `background.js` — thin relay service worker, creates offscreen document on first embed request
-- `offscreen.js` — loads `@xenova/transformers` with `Xenova/all-MiniLM-L6-v2` (quantized int8, ~5MB), lazy-initializes on first message
+- `offscreen.js` — loads `@xenova/transformers` with `Xenova/all-MiniLM-L6-v2` (quantized int8, bundled in `src/models/`), lazy-initializes on first message. Remote model fetching is disabled (`env.allowRemoteModels = false`).
 - `semantic-bridge.js` — content script helper that sends embed requests via `chrome.runtime.sendMessage`
 
 ### phrase-embeddings.json
@@ -27,24 +27,19 @@ Precomputed 384-dimensional embeddings for ~50 canonical AI-slop phrase types. G
 2. **Posts the heuristics already caught are done — the model is never invoked for them**
 3. For uncaught posts when `semanticEnabled`: content.js → `semantic-bridge.js` → `chrome.runtime.sendMessage` → `background.js` → offscreen document → model embeds sentences → `computeSemanticScore` against phrase bank → blocks retroactively if threshold met (Pass 2)
 
-## Setup
+## Bundled Assets
 
-Semantic scoring requires vendored files not checked into git:
+All semantic scoring assets are checked into git — no setup required:
 
-```bash
-npm install -D @xenova/transformers
-mkdir -p src/lib
-cp node_modules/@xenova/transformers/dist/transformers.min.js src/lib/transformers.min.js
-node scripts/build-embeddings.js
-```
+- `src/lib/transformers.min.js` — vendored `@xenova/transformers` CJS bundle (~877KB)
+- `src/models/Xenova/all-MiniLM-L6-v2/` — quantized MiniLM model files (~23MB)
+- `src/phrase-embeddings.json` — precomputed 384-dim embeddings for ~50 canonical phrase types (~530KB)
 
-The worker uses a `module.exports` shim to load the CJS bundle via `importScripts` (since MV3 CSP blocks CDN imports and the dist is not UMD/ESM).
-
-Re-run `build-embeddings.js` whenever canonical phrases in that script change.
+Re-run `node scripts/build-embeddings.js` whenever canonical phrases change.
 
 ## Key Decisions
 
-- **Disabled by default** because first activation downloads ~5MB model weights and adds latency
+- **Disabled by default** because it adds latency (model loads from bundled files on first activation)
 - **Two-pass async** so heuristic-caught posts render instantly with no delay — the expensive model is only invoked for posts the cheap heuristics missed
 - **Offscreen document** hosts the model because MV3 service workers lack WebAssembly/Workers/Atomics support. Content scripts can't create extension-origin Workers either.
 - **Vendored transformers.js** in `src/lib/transformers.min.js` — MV3 CSP blocks CDN imports, so the library must be local. Manifest includes `'wasm-unsafe-eval'` for the ONNX runtime.
