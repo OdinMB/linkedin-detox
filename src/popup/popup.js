@@ -14,6 +14,7 @@ const SENSITIVITY_DESCS = {
 
 const els = {
   enabled: document.getElementById("toggle-enabled"),
+  semantic: document.getElementById("toggle-semantic"),
   modeButtons: document.querySelectorAll(".mode-btn:not(.sensitivity-btn)"),
   sensitivityButtons: document.querySelectorAll(".sensitivity-btn"),
   blockedBadge: document.getElementById("blocked-badge"),
@@ -26,6 +27,7 @@ function save() {
   const sensitivity = document.querySelector(".sensitivity-btn.active").dataset.sensitivity;
   chrome.storage.sync.set({
     enabled: els.enabled.checked,
+    semanticEnabled: els.semantic.checked,
     mode: document.querySelector(".mode-btn:not(.sensitivity-btn).active").dataset.mode,
     sensitivity: sensitivity,
     threshold: SENSITIVITY_THRESHOLDS[sensitivity],
@@ -36,11 +38,13 @@ function loadState() {
   chrome.storage.sync.get(
     {
       enabled: true,
+      semanticEnabled: false,
       mode: "roast",
       sensitivity: "suspicious",
     },
     (items) => {
       els.enabled.checked = items.enabled;
+      els.semantic.checked = items.semanticEnabled;
 
       els.modeButtons.forEach((btn) => {
         btn.classList.toggle("active", btn.dataset.mode === items.mode);
@@ -63,6 +67,7 @@ function loadState() {
 // --- Event Listeners ---
 
 els.enabled.addEventListener("change", save);
+els.semantic.addEventListener("change", save);
 
 els.modeButtons.forEach((btn) => {
   btn.addEventListener("click", () => {

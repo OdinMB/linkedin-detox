@@ -1,215 +1,267 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-    body {
-      width: 360px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #1a1a2e;
-      color: #eee;
-      padding: 16px;
-    }
+      body {
+        width: 360px;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        background: #1a1a2e;
+        color: #eee;
+        padding: 16px;
+      }
 
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 4px;
-    }
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 4px;
+      }
 
-    h1 {
-      font-size: 16px;
-      color: #e94560;
-    }
+      h1 {
+        font-size: 16px;
+        color: #e94560;
+      }
 
-    .badge {
-      background: #e94560;
-      color: #fff;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 2px 8px;
-      border-radius: 10px;
-      min-width: 20px;
-      text-align: center;
-    }
+      .badge {
+        background: #e94560;
+        color: #fff;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 2px 8px;
+        border-radius: 10px;
+        min-width: 20px;
+        text-align: center;
+      }
 
-    .badge.zero { background: #333; color: #666; }
+      .badge.zero {
+        background: #333;
+        color: #666;
+      }
 
-    .subtitle {
-      font-size: 11px;
-      color: #999;
-      margin-bottom: 16px;
-    }
+      .subtitle {
+        font-size: 11px;
+        color: #999;
+        margin-bottom: 16px;
+      }
 
-    .section {
-      margin-bottom: 16px;
-    }
+      .section {
+        margin-bottom: 16px;
+      }
 
-    .section label {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
-      margin-bottom: 6px;
-      color: #ccc;
-    }
+      .section label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: #ccc;
+      }
 
-    .toggle-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
-    }
+      .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
 
-    .toggle-row span {
-      font-size: 13px;
-    }
+      .toggle-row span {
+        font-size: 13px;
+      }
 
-    /* Toggle switch */
-    .switch {
-      position: relative;
-      width: 40px;
-      height: 22px;
-    }
+      /* Toggle switch */
+      .switch {
+        position: relative;
+        width: 40px;
+        height: 22px;
+      }
 
-    .switch input { opacity: 0; width: 0; height: 0; }
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
 
-    .slider {
-      position: absolute;
-      inset: 0;
-      background: #333;
-      border-radius: 22px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
+      .slider {
+        position: absolute;
+        inset: 0;
+        background: #333;
+        border-radius: 22px;
+        cursor: pointer;
+        transition: 0.2s;
+      }
 
-    .slider::before {
-      content: "";
-      position: absolute;
-      height: 16px;
-      width: 16px;
-      left: 3px;
-      bottom: 3px;
-      background: #888;
-      border-radius: 50%;
-      transition: 0.2s;
-    }
+      .slider::before {
+        content: "";
+        position: absolute;
+        height: 16px;
+        width: 16px;
+        left: 3px;
+        bottom: 3px;
+        background: #888;
+        border-radius: 50%;
+        transition: 0.2s;
+      }
 
-    .switch input:checked + .slider { background: #e94560; }
-    .switch input:checked + .slider::before {
-      transform: translateX(18px);
-      background: #fff;
-    }
+      .switch input:checked + .slider {
+        background: #e94560;
+      }
+      .switch input:checked + .slider::before {
+        transform: translateX(18px);
+        background: #fff;
+      }
 
-    /* Mode selector */
-    .mode-buttons {
-      display: flex;
-      gap: 8px;
-    }
+      .switch--semantic input:checked + .slider {
+        background: #6366f1;
+      }
 
-    .mode-btn {
-      flex: 1;
-      padding: 8px;
-      border: 1px solid #333;
-      border-radius: 6px;
-      background: transparent;
-      color: #ccc;
-      font-size: 12px;
-      cursor: pointer;
-      text-align: center;
-      transition: 0.15s;
-    }
+      .toggle-desc {
+        font-size: 10px;
+        color: #777;
+        line-height: 1.4;
+        margin: -6px 0 12px 0;
+      }
 
-    .mode-btn:hover { border-color: #e94560; }
+      /* Mode selector */
+      .mode-buttons {
+        display: flex;
+        gap: 8px;
+      }
 
-    .mode-btn.active {
-      border-color: #e94560;
-      background: rgba(233, 69, 96, 0.15);
-      color: #e94560;
-      font-weight: 600;
-    }
+      .mode-btn {
+        flex: 1;
+        padding: 8px;
+        border: 1px solid #333;
+        border-radius: 6px;
+        background: transparent;
+        color: #ccc;
+        font-size: 12px;
+        cursor: pointer;
+        text-align: center;
+        transition: 0.15s;
+      }
 
-    .sensitivity-desc {
-      font-size: 10px;
-      color: #999;
-      margin-top: 6px;
-      line-height: 1.4;
-    }
+      .mode-btn:hover {
+        border-color: #e94560;
+      }
 
-    /* Settings link */
-    .settings-link {
-      display: block;
-      text-align: center;
-      font-size: 12px;
-      color: #888;
-      cursor: pointer;
-      padding: 8px;
-      border: 1px solid #333;
-      border-radius: 6px;
-      transition: 0.15s;
-      background: none;
-      width: 100%;
-      margin-bottom: 12px;
-    }
+      .mode-btn.active {
+        border-color: #e94560;
+        background: rgba(233, 69, 96, 0.15);
+        color: #e94560;
+        font-weight: 600;
+      }
 
-    .settings-link:hover {
-      color: #e94560;
-      border-color: #e94560;
-    }
+      .sensitivity-desc {
+        font-size: 10px;
+        color: #999;
+        margin-top: 6px;
+        line-height: 1.4;
+      }
 
-    .kofi-link {
-      display: block;
-      text-align: center;
-      font-size: 11px;
-      color: #666;
-      text-decoration: none;
-      padding: 4px;
-    }
+      /* Settings link */
+      .settings-link {
+        display: block;
+        text-align: center;
+        font-size: 12px;
+        color: #888;
+        cursor: pointer;
+        padding: 8px;
+        border: 1px solid #333;
+        border-radius: 6px;
+        transition: 0.15s;
+        background: none;
+        width: 100%;
+        margin-bottom: 12px;
+      }
 
-    .kofi-link:hover { color: #e94560; }
-  </style>
-</head>
-<body>
-  <div class="header">
-    <h1>LinkedIn Detox</h1>
-    <div class="badge zero" id="blocked-badge">0</div>
-  </div>
-  <div class="subtitle">Protect your feed from thought-leader brain rot.</div>
+      .settings-link:hover {
+        color: #e94560;
+        border-color: #e94560;
+      }
 
-  <div class="section">
-    <div class="toggle-row">
-      <span>Slop filter active</span>
-      <label class="switch">
-        <input type="checkbox" id="toggle-enabled" checked>
-        <span class="slider"></span>
-      </label>
+      .kofi-link {
+        display: block;
+        text-align: center;
+        font-size: 11px;
+        color: #666;
+        text-decoration: none;
+        padding: 4px;
+      }
+
+      .kofi-link:hover {
+        color: #e94560;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>LinkedIn Detox</h1>
+      <div class="badge zero" id="blocked-badge">0</div>
     </div>
-  </div>
+    <div class="subtitle">Protect your feed from thought-leader brain rot.</div>
 
-  <div class="section">
-    <label>When slop is detected</label>
-    <div class="mode-buttons">
-      <button class="mode-btn active" data-mode="roast">Roast it</button>
-      <button class="mode-btn" data-mode="hide">Hide it</button>
+    <div class="section">
+      <div class="toggle-row">
+        <span>Slop filter active</span>
+        <label class="switch">
+          <input type="checkbox" id="toggle-enabled" checked />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="toggle-row">
+        <span>Semantic detection</span>
+        <label class="switch switch--semantic">
+          <input type="checkbox" id="toggle-semantic" />
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="toggle-desc">Uses a small local AI model to catch rephrased slop that keywords miss. May slow things down on older machines.</div>
     </div>
-  </div>
 
-  <div class="section">
-    <label>Paranoia level</label>
-    <div class="mode-buttons">
-      <button class="mode-btn sensitivity-btn" data-sensitivity="chill">Chill</button>
-      <button class="mode-btn sensitivity-btn active" data-sensitivity="suspicious">Suspicious</button>
-      <button class="mode-btn sensitivity-btn" data-sensitivity="unhinged">Unhinged</button>
+    <div class="section">
+      <label>When slop is detected</label>
+      <div class="mode-buttons">
+        <button class="mode-btn active" data-mode="roast">Roast it</button>
+        <button class="mode-btn" data-mode="hide">Hide it</button>
+      </div>
     </div>
-    <div class="sensitivity-desc" id="sensitivity-desc">Catches most AI-generated slop (score > 25).</div>
-  </div>
 
-  <button class="settings-link" id="open-settings">Tune the slop radar &amp; debug</button>
+    <div class="section">
+      <label>Paranoia level</label>
+      <div class="mode-buttons">
+        <button class="mode-btn sensitivity-btn" data-sensitivity="chill">
+          Chill
+        </button>
+        <button
+          class="mode-btn sensitivity-btn active"
+          data-sensitivity="suspicious"
+        >
+          Suspicious
+        </button>
+        <button class="mode-btn sensitivity-btn" data-sensitivity="unhinged">
+          Unhinged
+        </button>
+      </div>
+      <div class="sensitivity-desc" id="sensitivity-desc">
+        Catches most AI-generated slop (score > 25).
+      </div>
+    </div>
 
-  <a class="kofi-link" href="https://ko-fi.com/odinmb" target="_blank">Buy the maintainer a coffee</a>
+    <button class="settings-link" id="open-settings">
+      Tune the slop radar &amp; debug
+    </button>
 
-  <script src="popup.js"></script>
-</body>
+    <a class="kofi-link" href="https://ko-fi.com/odinmb" target="_blank"
+      >Buy me a coffee</a
+    >
+
+    <script src="popup.js"></script>
+  </body>
 </html>

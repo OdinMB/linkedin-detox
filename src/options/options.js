@@ -202,7 +202,7 @@ function loadState() {
   chrome.storage.sync.get(
     {
       semanticEnabled: false,
-      showBadge: false,
+      showBadge: true,
       testMode: false,
       debugLogging: false,
       userSignalWords: [],

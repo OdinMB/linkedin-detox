@@ -27,7 +27,7 @@ async function ensureOffscreen() {
 // --- Extension icon badge ---
 
 function updateBadge() {
-  chrome.storage.sync.get({ showBadge: false }, (syncItems) => {
+  chrome.storage.sync.get({ showBadge: true }, (syncItems) => {
     if (!syncItems.showBadge) {
       chrome.action.setBadgeText({ text: "" });
       return;
