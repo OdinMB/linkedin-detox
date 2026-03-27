@@ -5,7 +5,7 @@
 A free, open-source Chrome extension that detects AI-generated slop on LinkedIn and either hides it or drops a snarky roast banner right on top.
 
 <p align="center">
-  <img src="icons/screenshot.png" width="480" alt="LinkedIn Detox in action">
+  <img src="icons/screenshot-wide.png" width="640" alt="LinkedIn Detox in action">
 </p>
 
 > **Fair warning:** This is satire first, software second. The detection is based on vibes, not science -- pattern matching on buzzwords, sentence templates, and an optional embedding model that's doing its best. It will flag posts that were written by humans and miss posts that were written by machines. Do not accuse anyone of using AI because this extension roasted their post. Do not assume a post is human-written because it wasn't flagged. Treat every roast as comedy, not a verdict.
