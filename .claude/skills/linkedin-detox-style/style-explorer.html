@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Style Explorer — LinkedIn Detox</title>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface-2: #242424;
+    --border: #333;
+    --text: #e8e8e8;
+    --text-muted: #888;
+    --accent: #7c6ef0;
+    --accent-dim: #5a4ec0;
+    --tab-active: #7c6ef0;
+    --tab-inactive: #333;
+    --radius: 8px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  /* Top bar */
+  .top-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+  }
+
+  .top-bar .project-name {
+    display: flex;
+    align-items: center;
+    padding: 12px 24px 12px 0;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    border-right: 1px solid var(--border);
+    margin-right: 8px;
+    white-space: nowrap;
+  }
+
+  .tab-group {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    overflow-x: auto;
+  }
+
+  .tab {
+    padding: 14px 20px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-muted);
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  .tab:hover { color: var(--text); background: var(--surface-2); }
+  .tab.active { color: var(--text); border-bottom-color: var(--tab-active); }
+
+  .phase-label {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    font-size: 12px;
+    color: var(--text-muted);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  /* Content area */
+  .content { max-width: 960px; margin: 0 auto; padding: 32px 24px 64px; }
+
+  .direction-panel { display: none; }
+  .direction-panel.active { display: block; }
+
+  /* Section blocks */
+  .section {
+    margin-bottom: 40px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .section-header {
+    padding: 16px 20px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+
+  .section-body { padding: 20px; }
+
+  /* Concept / overview */
+  .concept-name {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .concept-tagline {
+    font-size: 16px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+
+  .concept-description {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text);
+  }
+
+  /* Color palette */
+  .palette {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .color-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .color-group-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+
+  .color-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .swatch {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .swatch-color {
+    width: 64px;
+    height: 64px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.1);
+    transition: transform 0.15s;
+  }
+
+  .swatch-color:hover { transform: scale(1.08); }
+
+  .swatch-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+
+  .swatch-hex {
+    font-size: 10px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    color: var(--text-muted);
+    opacity: 0.7;
+  }
+
+  /* Typography */
+  .type-samples { display: flex; flex-direction: column; gap: 20px; }
+
+  .type-sample {
+    padding: 16px;
+    background: var(--surface-2);
+    border-radius: 6px;
+  }
+
+  .type-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .type-role {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--accent);
+  }
+
+  .type-spec {
+    font-size: 11px;
+    font-family: monospace;
+    color: var(--text-muted);
+  }
+
+  .type-preview {
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  /* Imagery / art direction */
+  .imagery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  .imagery-card {
+    background: var(--surface-2);
+    border-radius: 6px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .imagery-card-title {
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .imagery-card-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+
+  .imagery-card img {
+    width: 100%;
+    border-radius: 4px;
+    margin-top: 4px;
+  }
+
+  /* Tone & voice */
+  .tone-traits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .tone-trait {
+    background: var(--surface-2);
+    border-radius: 6px;
+    padding: 12px 16px;
+    flex: 1;
+    min-width: 180px;
+  }
+
+  .tone-trait-name {
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+
+  .tone-trait-this {
+    font-size: 13px;
+    color: var(--accent);
+    margin-bottom: 2px;
+  }
+
+  .tone-trait-not {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  /* Motifs */
+  .motifs-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .motif-tag {
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 13px;
+  }
+
+  /* Avoid list */
+  .avoid-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .avoid-list li {
+    padding: 10px 14px;
+    background: rgba(220, 60, 60, 0.08);
+    border-left: 3px solid #dc3c3c;
+    border-radius: 0 6px 6px 0;
+    font-size: 14px;
+    color: var(--text);
+  }
+
+  /* Reference images */
+  .ref-images {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+  }
+
+  .ref-image {
+    background: var(--surface-2);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .ref-image img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+  }
+
+  .ref-image-label {
+    padding: 8px 10px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* Empty state */
+  .empty-state {
+    padding: 48px 24px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  /* Comparison view (for final refinement) */
+  .comparison-banner {
+    background: var(--accent-dim);
+    color: white;
+    text-align: center;
+    padding: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    display: none;
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .top-bar { padding: 0 12px; }
+    .tab { padding: 12px 14px; font-size: 13px; }
+    .content { padding: 20px 12px 48px; }
+    .swatch-color { width: 48px; height: 48px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="comparison-banner" id="comparison-banner"></div>
+
+<div class="top-bar">
+  <div class="project-name" id="project-name">LinkedIn Detox</div>
+  <div class="tab-group" id="tab-group">
+    <!-- Tabs are inserted dynamically -->
+  </div>
+  <div class="phase-label" id="phase-label">Exploring</div>
+</div>
+
+<div class="content" id="content">
+  <!-- Direction panels are inserted dynamically -->
+  <div class="empty-state" id="empty-state">
+    Style directions will appear here as they are developed.
+  </div>
+</div>
+
+<script>
+// ── State ──
+const state = {
+  directions: {},
+  activeTab: null,
+  phase: 'exploring'
+};
+
+// ── API: called by the agent to populate the page ──
+
+function setProject(name) {
+  document.getElementById('project-name').textContent = name;
+  document.title = `Style Explorer — ${name}`;
+}
+
+function setPhase(label) {
+  state.phase = label;
+  document.getElementById('phase-label').textContent = label;
+}
+
+function showComparisonBanner(text) {
+  const banner = document.getElementById('comparison-banner');
+  banner.textContent = text;
+  banner.style.display = 'block';
+}
+
+function hideComparisonBanner() {
+  document.getElementById('comparison-banner').style.display = 'none';
+}
+
+function addDirection(id, data) {
+  // data: { name, tagline, description }
+  state.directions[id] = { ...data, colors: [], typography: [], imagery: [], tone: [], motifs: [], avoid: [], refs: [] };
+  renderTabs();
+  renderDirection(id);
+  if (!state.activeTab) switchTab(id);
+  document.getElementById('empty-state').style.display = 'none';
+}
+
+function updateDirection(id, data) {
+  if (!state.directions[id]) return;
+  Object.assign(state.directions[id], data);
+  renderDirection(id);
+}
+
+function removeDirection(id) {
+  delete state.directions[id];
+  const panel = document.getElementById(`panel-${id}`);
+  if (panel) panel.remove();
+  renderTabs();
+  const remaining = Object.keys(state.directions);
+  if (state.activeTab === id && remaining.length > 0) switchTab(remaining[0]);
+  if (remaining.length === 0) document.getElementById('empty-state').style.display = 'block';
+}
+
+function setColors(directionId, colorGroups) {
+  // colorGroups: [{ label: "Primary", colors: [{ hex, name }] }]
+  if (!state.directions[directionId]) return;
+  state.directions[directionId].colors = colorGroups;
+  renderSection(directionId, 'colors');
+}
+
+function setTypography(directionId, samples) {
+  // samples: [{ role, family, weight, size, preview, style }]
+  if (!state.directions[directionId]) return;
+  state.directions[directionId].typography = samples;
+  renderSection(directionId, 'typography');
+}
+
+function setImagery(directionId, cards) {
+  // cards: [{ title, description, imageSrc? }]
+  if (!state.directions[directionId]) return;
+  state.directions[directionId].imagery = cards;
+  renderSection(directionId, 'imagery');
+}
+
+function setTone(directionId, traits) {
+  // traits: [{ name, this: "...", not: "..." }]
+  if (!state.directions[directionId]) return;
+  state.directions[directionId].tone = traits;
+  renderSection(directionId, 'tone');
+}
+
+function setMotifs(directionId, motifs) {
+  // motifs: ["motif1", "motif2"]
+  if (!state.directions[directionId]) return;
+  state.directions[directionId].motifs = motifs;
+  renderSection(directionId, 'motifs');
+}
+
+function setAvoid(directionId, items) {
+  // items: ["thing to avoid 1", "thing to avoid 2"]
+  if (!state.directions[directionId]) return;
+  state.directions[directionId].avoid = items;
+  renderSection(directionId, 'avoid');
+}
+
+function setRefImages(directionId, images) {
+  // images: [{ src, label }]
+  if (!state.directions[directionId]) return;
+  state.directions[directionId].refs = images;
+  renderSection(directionId, 'refs');
+}
+
+// ── Rendering ──
+
+function switchTab(id) {
+  state.activeTab = id;
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.id === id));
+  document.querySelectorAll('.direction-panel').forEach(p => p.classList.toggle('active', p.id === `panel-${id}`));
+}
+
+function renderTabs() {
+  const group = document.getElementById('tab-group');
+  group.innerHTML = '';
+  for (const id of Object.keys(state.directions)) {
+    const tab = document.createElement('div');
+    tab.className = `tab${id === state.activeTab ? ' active' : ''}`;
+    tab.dataset.id = id;
+    tab.textContent = state.directions[id].name || id;
+    tab.onclick = () => switchTab(id);
+    group.appendChild(tab);
+  }
+}
+
+function renderDirection(id) {
+  const d = state.directions[id];
+  let panel = document.getElementById(`panel-${id}`);
+  if (!panel) {
+    panel = document.createElement('div');
+    panel.id = `panel-${id}`;
+    panel.className = `direction-panel${id === state.activeTab ? ' active' : ''}`;
+    document.getElementById('content').appendChild(panel);
+  }
+
+  panel.innerHTML = `
+    <div class="section">
+      <div class="section-header">Concept</div>
+      <div class="section-body">
+        <div class="concept-name">${esc(d.name || '')}</div>
+        <div class="concept-tagline">${esc(d.tagline || '')}</div>
+        <div class="concept-description">${esc(d.description || '')}</div>
+      </div>
+    </div>
+    <div id="colors-${id}"></div>
+    <div id="typography-${id}"></div>
+    <div id="imagery-${id}"></div>
+    <div id="tone-${id}"></div>
+    <div id="motifs-${id}"></div>
+    <div id="avoid-${id}"></div>
+    <div id="refs-${id}"></div>
+  `;
+
+  // Render populated sections
+  ['colors', 'typography', 'imagery', 'tone', 'motifs', 'avoid', 'refs'].forEach(s => renderSection(id, s));
+}
+
+function renderSection(directionId, section) {
+  const d = state.directions[directionId];
+  if (!d) return;
+  const container = document.getElementById(`${section}-${directionId}`);
+  if (!container) return;
+
+  const data = d[section];
+  if (!data || (Array.isArray(data) && data.length === 0)) {
+    container.innerHTML = '';
+    return;
+  }
+
+  const renderers = { colors: renderColors, typography: renderTypography, imagery: renderImagery, tone: renderTone, motifs: renderMotifs, avoid: renderAvoid, refs: renderRefs };
+  container.innerHTML = renderers[section](data);
+}
+
+function renderColors(groups) {
+  let html = '<div class="section"><div class="section-header">Color Palette</div><div class="section-body"><div class="palette">';
+  for (const g of groups) {
+    html += `<div class="color-group"><div class="color-group-label">${esc(g.label)}</div><div class="color-row">`;
+    for (const c of g.colors) {
+      html += `<div class="swatch"><div class="swatch-color" style="background:${esc(c.hex)}"></div><div class="swatch-label">${esc(c.name || '')}</div><div class="swatch-hex">${esc(c.hex)}</div></div>`;
+    }
+    html += '</div></div>';
+  }
+  html += '</div></div></div>';
+  return html;
+}
+
+function renderTypography(samples) {
+  let html = '<div class="section"><div class="section-header">Typography</div><div class="section-body"><div class="type-samples">';
+  for (const s of samples) {
+    const style = `font-family:${esc(s.family || 'inherit')};font-weight:${esc(s.weight || 'normal')};font-size:${esc(s.size || '16px')};${s.style || ''}`;
+    html += `<div class="type-sample"><div class="type-meta"><span class="type-role">${esc(s.role || '')}</span><span class="type-spec">${esc(s.family || '')} ${esc(s.weight || '')} / ${esc(s.size || '')}</span></div><div class="type-preview" style="${style}">${esc(s.preview || 'The quick brown fox jumps over the lazy dog')}</div></div>`;
+  }
+  html += '</div></div></div>';
+  return html;
+}
+
+function renderImagery(cards) {
+  let html = '<div class="section"><div class="section-header">Imagery & Art Direction</div><div class="section-body"><div class="imagery-grid">';
+  for (const c of cards) {
+    html += `<div class="imagery-card"><div class="imagery-card-title">${esc(c.title || '')}</div><div class="imagery-card-desc">${esc(c.description || '')}</div>${c.imageSrc ? `<img src="${esc(c.imageSrc)}" alt="${esc(c.title || '')}">` : ''}</div>`;
+  }
+  html += '</div></div></div>';
+  return html;
+}
+
+function renderTone(traits) {
+  let html = '<div class="section"><div class="section-header">Tone & Voice</div><div class="section-body"><div class="tone-traits">';
+  for (const t of traits) {
+    html += `<div class="tone-trait"><div class="tone-trait-name">${esc(t.name)}</div><div class="tone-trait-this">This: ${esc(t.this)}</div><div class="tone-trait-not">Not: ${esc(t.not)}</div></div>`;
+  }
+  html += '</div></div></div>';
+  return html;
+}
+
+function renderMotifs(motifs) {
+  let html = '<div class="section"><div class="section-header">Themes & Motifs</div><div class="section-body"><div class="motifs-list">';
+  for (const m of motifs) {
+    html += `<div class="motif-tag">${esc(m)}</div>`;
+  }
+  html += '</div></div></div>';
+  return html;
+}
+
+function renderAvoid(items) {
+  let html = '<div class="section"><div class="section-header">What to Avoid</div><div class="section-body"><ul class="avoid-list">';
+  for (const item of items) {
+    html += `<li>${esc(item)}</li>`;
+  }
+  html += '</ul></div></div>';
+  return html;
+}
+
+function renderRefs(images) {
+  let html = '<div class="section"><div class="section-header">Reference Images</div><div class="section-body"><div class="ref-images">';
+  for (const img of images) {
+    html += `<div class="ref-image"><img src="${esc(img.src)}" alt="${esc(img.label || '')}"><div class="ref-image-label">${esc(img.label || '')}</div></div>`;
+  }
+  html += '</div></div></div>';
+  return html;
+}
+
+// ── Utility ──
+function esc(s) { const d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
+
+// ── Keyboard nav ──
+document.addEventListener('keydown', (e) => {
+  const ids = Object.keys(state.directions);
+  if (ids.length < 2) return;
+  const idx = ids.indexOf(state.activeTab);
+  if (e.key === 'ArrowLeft' && idx > 0) switchTab(ids[idx - 1]);
+  if (e.key === 'ArrowRight' && idx < ids.length - 1) switchTab(ids[idx + 1]);
+});
+</script>
+
+<script>
+setProject("LinkedIn Detox");
+setPhase("Final Style Kit");
+
+// Banner mockup renderer — supports both dark and light LinkedIn contexts
+function renderBannerMockup(dirId, config) {
+  const c = config;
+  const isLight = c.linkedinBg === 'light';
+
+  const panel = document.getElementById(`panel-${dirId}`);
+  if (!panel) return;
+
+  const mockupId = `mockup-${dirId}`;
+  let mockupDiv = document.getElementById(mockupId);
+  if (!mockupDiv) {
+    mockupDiv = document.createElement('div');
+    mockupDiv.id = mockupId;
+    panel.appendChild(mockupDiv);
+  }
+
+  const liBg = isLight ? '#ffffff' : '#1b1f23';
+  const liDimText = isLight ? '#333' : '#ccc';
+  const liDimSubtext = isLight ? '#666' : '#888';
+  const liDimName = isLight ? '#222' : '#e0e0e0';
+  const liAvatarBg = isLight ? '#ddd' : '#444';
+  const liCardShadow = isLight ? '0 1px 3px rgba(0,0,0,0.08)' : 'none';
+
+  mockupDiv.innerHTML = `
+    <div class="section">
+      <div class="section-header">Banner Mockup — ${isLight ? 'Light Mode' : 'Dark Mode'} LinkedIn</div>
+      <div class="section-body" style="padding:16px;background:${isLight ? '#f3f2ef' : '#111'};">
+
+        <!-- LinkedIn post card -->
+        <div style="
+          background:${liBg};
+          border-radius:8px;
+          box-shadow:${liCardShadow};
+          border:${isLight ? '1px solid #e0e0e0' : '1px solid #333'};
+          overflow:hidden;
+          max-width:560px;
+          margin:0 auto;
+        ">
+          <!-- Post header (dimmed) -->
+          <div style="opacity:0.2;padding:16px 16px 0;">
+            <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">
+              <div style="width:44px;height:44px;border-radius:50%;background:${liAvatarBg};flex-shrink:0;"></div>
+              <div>
+                <div style="color:${liDimName};font-weight:600;font-size:14px;font-family:-apple-system,system-ui,sans-serif;">AI Thought Leader</div>
+                <div style="color:${liDimSubtext};font-size:12px;font-family:-apple-system,system-ui,sans-serif;">Chief Synergy Officer at Buzzword Inc.</div>
+              </div>
+            </div>
+            <div style="color:${liDimText};font-size:14px;line-height:1.5;font-family:-apple-system,system-ui,sans-serif;padding-bottom:12px;">
+              I'm humbled to share that after an incredible journey of leveraging synergies and unlocking transformative paradigm shifts, I've come to realize that the intersection of innovation and disruption is where true thought leadership begins...
+            </div>
+          </div>
+
+          <!-- Banner overlay -->
+          <div style="
+            background:${c.bgGrad || c.bg};
+            border-top:${isLight ? 'none' : '1px solid ' + (c.accentDim || c.accent)};
+            overflow:hidden;
+          ">
+            <!-- Caution stripe top -->
+            <div style="
+              height:5px;
+              background:repeating-linear-gradient(
+                -45deg,
+                ${c.stripe1} 0px, ${c.stripe1} 8px,
+                ${c.stripe2} 8px, ${c.stripe2} 16px
+              );
+            "></div>
+
+            <!-- Header bar -->
+            <div style="
+              display:flex;
+              justify-content:space-between;
+              align-items:center;
+              padding:8px 14px;
+              background:${c.headerBg};
+              border-bottom:1px solid ${c.borderColor || c.accentDim || 'rgba(0,0,0,0.1)'};
+            ">
+              <div style="
+                font-family:Impact,'Arial Black',sans-serif;
+                font-size:12px;
+                text-transform:uppercase;
+                letter-spacing:2px;
+                color:${c.accent};
+              ">&#9762; LINKEDIN DETOX</div>
+              <div style="
+                width:22px;height:22px;
+                border-radius:4px;
+                background:${c.closeBg};
+                display:flex;align-items:center;justify-content:center;
+                color:${c.closeColor || c.textMuted};font-size:13px;cursor:pointer;
+              ">&times;</div>
+            </div>
+
+            <!-- Body -->
+            <div style="
+              display:flex;
+              flex-direction:column;
+              align-items:center;
+              padding:24px 20px 16px;
+              gap:14px;
+            ">
+              <!-- Icon -->
+              <div style="
+                width:72px;height:72px;
+                border-radius:8px;
+                background:${c.iconBg};
+                border:2px dashed ${c.iconBorder || c.accentDim || c.accent};
+                display:flex;align-items:center;justify-content:center;
+                font-size:32px;
+                color:${c.iconColor || c.accent};
+              ">&#9762;</div>
+
+              <!-- Roast -->
+              <div style="
+                font-family:'Segoe UI',system-ui,sans-serif;
+                font-size:18px;
+                font-style:italic;
+                text-align:center;
+                color:${c.text};
+                max-width:380px;
+                line-height:1.4;
+              ">"This post leveraged synergy to unlock exactly nothing."</div>
+
+              <!-- Meta -->
+              <div style="
+                font-family:'Courier New',monospace;
+                font-size:10px;
+                text-transform:uppercase;
+                letter-spacing:1px;
+                color:${c.meta || c.textMuted};
+              ">Score: 87 | Triggers: word-frequency, co-occurrence</div>
+            </div>
+
+            <!-- Caution stripe bottom -->
+            <div style="
+              height:5px;
+              background:repeating-linear-gradient(
+                -45deg,
+                ${c.stripe1} 0px, ${c.stripe1} 8px,
+                ${c.stripe2} 8px, ${c.stripe2} 16px
+              );
+            "></div>
+          </div>
+
+          <!-- Dimmed LinkedIn action bar -->
+          <div style="opacity:0.15;display:flex;justify-content:space-around;padding:10px 16px;border-top:1px solid ${isLight ? '#e8e8e8' : '#333'};font-size:13px;color:${liDimSubtext};font-family:-apple-system,system-ui,sans-serif;">
+            <span>Like</span><span>Comment</span><span>Repost</span><span>Send</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  `;
+}
+
+// ══════════════════════════════════════════════════════════
+// LOCKED IN: Unified dual-mode palette
+// Shared caution yellow (#f5c518) and fonts across both modes
+// ══════════════════════════════════════════════════════════
+
+// ── Unified Palette: Dark Mode ──
+addDirection("dark-mode", {
+  name: "Dark Mode",
+  tagline: "Radioactive hazmat — toxic green + caution yellow on void black",
+  description: "For LinkedIn dark mode users. Toxic green as the primary signal color, with shared caution yellow (#f5c518) for warning stripes and accents. The same Impact/Courier New/Segoe UI font stack as light mode. Green glow creates an ominous, sci-fi containment feel."
+});
+setColors("dark-mode", [
+  { label: "Backgrounds", colors: [
+    { hex: "#0d0d0d", name: "Void Black" },
+    { hex: "#1a1a1a", name: "Chamber Dark" },
+    { hex: "#252525", name: "Surface" }
+  ]},
+  { label: "Signal (shared)", colors: [
+    { hex: "#f5c518", name: "Caution Yellow" },
+    { hex: "#d4a017", name: "Hazard Gold" }
+  ]},
+  { label: "Radiation", colors: [
+    { hex: "#39ff14", name: "Toxic Green" },
+    { hex: "#1a8a0a", name: "Dim Isotope" }
+  ]},
+  { label: "Danger", colors: [
+    { hex: "#ff3333", name: "Meltdown Red" },
+    { hex: "#cc0000", name: "Core Breach" }
+  ]},
+  { label: "Text", colors: [
+    { hex: "#e0e0e0", name: "Primary Text" },
+    { hex: "#9e9e9e", name: "Secondary" },
+    { hex: "#666666", name: "Muted" }
+  ]}
+]);
+setTypography("dark-mode", [
+  { role: "Header Title", family: "Impact, 'Arial Black', sans-serif", weight: "900", size: "13px", preview: "☢ LINKEDIN DETOX", style: "text-transform:uppercase;letter-spacing:2px;color:#39ff14;" },
+  { role: "Roast Message", family: "'Segoe UI', system-ui, sans-serif", weight: "400", size: "18px", preview: "\"This post leveraged synergy to unlock exactly nothing.\"", style: "font-style:italic;color:#e0e0e0;" },
+  { role: "Meta / Detection Info", family: "'Courier New', monospace", weight: "400", size: "10px", preview: "SCORE: 87 | TRIGGERS: WORD-FREQUENCY, CO-OCCURRENCE", style: "text-transform:uppercase;letter-spacing:1px;color:#39ff14;" }
+]);
+renderBannerMockup("dark-mode", {
+  linkedinBg: "dark",
+  bg: "#0d0d0d",
+  bgGrad: "linear-gradient(180deg, #0d0d0d 0%, #080808 100%)",
+  accent: "#39ff14",
+  accentDim: "rgba(57,255,20,0.25)",
+  text: "#e0e0e0",
+  textMuted: "#666666",
+  stripe1: "#f5c518",
+  stripe2: "#1a1a1a",
+  headerBg: "#1a1a1a",
+  meta: "#39ff14",
+  iconBg: "rgba(57,255,20,0.06)",
+  iconColor: "#39ff14",
+  iconBorder: "rgba(57,255,20,0.3)",
+  closeBg: "rgba(255,255,255,0.06)",
+  closeColor: "#666"
+});
+
+// ── Unified Palette: Light Mode ──
+addDirection("light-mode", {
+  name: "Light Mode",
+  tagline: "Quarantine notice — caution yellow on clean white, official inspection energy",
+  description: "For LinkedIn's default light mode. Same caution yellow (#f5c518) stripes and same font stack as dark mode. White/cream background with dark text. Looks like an official quarantine notice — authoritative but not jarring. Blends naturally with LinkedIn's light feed."
+});
+setColors("light-mode", [
+  { label: "Backgrounds", colors: [
+    { hex: "#ffffff", name: "Clean White" },
+    { hex: "#fafafa", name: "Lab Surface" },
+    { hex: "#f5f3ee", name: "Notice Paper" }
+  ]},
+  { label: "Signal (shared)", colors: [
+    { hex: "#f5c518", name: "Caution Yellow" },
+    { hex: "#d4a017", name: "Hazard Gold" }
+  ]},
+  { label: "Hazard Accent", colors: [
+    { hex: "#7a6210", name: "Dark Gold" },
+    { hex: "#9a7b10", name: "Stamp Gold" }
+  ]},
+  { label: "Danger", colors: [
+    { hex: "#c0392b", name: "Alert Red" },
+    { hex: "#922b21", name: "Critical" }
+  ]},
+  { label: "Text", colors: [
+    { hex: "#1a1a1a", name: "Print Black" },
+    { hex: "#555555", name: "Body" },
+    { hex: "#888888", name: "Fine Print" }
+  ]}
+]);
+setTypography("light-mode", [
+  { role: "Header Title", family: "Impact, 'Arial Black', sans-serif", weight: "900", size: "13px", preview: "☢ LINKEDIN DETOX", style: "text-transform:uppercase;letter-spacing:2px;color:#7a6210;" },
+  { role: "Roast Message", family: "'Segoe UI', system-ui, sans-serif", weight: "400", size: "18px", preview: "\"This post leveraged synergy to unlock exactly nothing.\"", style: "font-style:italic;color:#1a1a1a;" },
+  { role: "Meta / Detection Info", family: "'Courier New', monospace", weight: "400", size: "10px", preview: "SCORE: 87 | TRIGGERS: WORD-FREQUENCY, CO-OCCURRENCE", style: "text-transform:uppercase;letter-spacing:1px;color:#9a7b10;" }
+]);
+renderBannerMockup("light-mode", {
+  linkedinBg: "light",
+  bg: "#fafafa",
+  bgGrad: "linear-gradient(180deg, #fafafa 0%, #f5f3ee 100%)",
+  accent: "#7a6210",
+  accentDim: "rgba(212,160,23,0.3)",
+  text: "#1a1a1a",
+  textMuted: "#888888",
+  stripe1: "#f5c518",
+  stripe2: "#1a1a1a",
+  headerBg: "#f0ece1",
+  borderColor: "rgba(0,0,0,0.1)",
+  meta: "#9a7b10",
+  iconBg: "rgba(212,160,23,0.08)",
+  iconBorder: "rgba(212,160,23,0.35)",
+  iconColor: "#9a7b10",
+  closeBg: "rgba(0,0,0,0.06)",
+  closeColor: "#888"
+});
+
+// ══════════════════════════════════════════════════════════
+// SHARED: Tone, Imagery, Motifs, Avoid (same for both modes)
+// ══════════════════════════════════════════════════════════
+
+const sharedTone = [
+  { name: "Deadpan Authority", this: "Official-sounding warnings delivered with a straight face", not: "Winking or self-aware about the joke" },
+  { name: "Bureaucratic Absurdity", this: "Treating LinkedIn posts like regulated hazardous materials requiring official containment", not: "Actually mean-spirited or personal attacks on users" },
+  { name: "Dry Humor", this: "Comedy from the contrast between serious hazmat framing and trivial LinkedIn posts", not: "LOL-random internet humor, memes, or pop culture references" },
+  { name: "Anti-Corporate Satire", this: "Mocking the system (AI slop, hustle culture, thought leadership) not individuals", not: "Punching down at regular people or making fun of someone's career" }
+];
+
+const sharedMotifs = [
+  "caution tape stripes (diagonal yellow #f5c518 / black)",
+  "biohazard ☢ and radiation symbols",
+  "specimen tags and inspection stamps",
+  "containment / quarantine language",
+  "warning triangles and hazard diamonds",
+  "thick industrial borders",
+  "monospace detection readouts",
+  "official-looking form fields and report layouts"
+];
+
+const sharedAvoid = [
+  "Photorealistic or 3D rendered imagery — keep it flat, graphic, and illustrative",
+  "Gradients longer than subtle background shifts — prefer flat fills",
+  "Rounded, friendly, or 'cute' aesthetics — this is industrial, not playful",
+  "Neon colors besides the radioactive green — no pinks, purples, or blues as accents",
+  "Generic 'tech' imagery (circuit boards, binary code) — stay in the hazmat/containment metaphor",
+  "Self-deprecating tone — the extension is confident, not apologetic about what it does",
+  "LinkedIn's own blue (#0077b5) as an accent — it should feel separate from LinkedIn's UI",
+  "Comic Sans or handwritten fonts — stay stencil/industrial/system"
+];
+
+setTone("dark-mode", sharedTone);
+setTone("light-mode", sharedTone);
+setMotifs("dark-mode", sharedMotifs);
+setMotifs("light-mode", sharedMotifs);
+setAvoid("dark-mode", sharedAvoid);
+setAvoid("light-mode", sharedAvoid);
+
+setImagery("dark-mode", [
+  { title: "Banner Illustrations", description: "Flat, graphic illustrations in the hazmat style. Robots, factories, containment chambers. Limited palette: greens, yellows, black, white. Bold outlines, geometric simplification. Think warning-sign pictograms scaled up to illustration size." },
+  { title: "Icon Style", description: "Simple hazard-symbol-inspired icons. Monochrome or two-color (signal color + background). Sharp geometric shapes, no rounded corners. Stencil weight." },
+  { title: "Popup/Options UI", description: "Dark surfaces (#0d0d0d, #1a1a1a) with green (#39ff14) or yellow (#f5c518) accents. Toggle switches use signal colors. Industrial feel — functional, utilitarian, no decorative elements." }
+]);
+setImagery("light-mode", [
+  { title: "Banner Illustrations", description: "Same flat, graphic illustration style as dark mode but with darker outlines on light backgrounds. Colors shift to golds, ambers, and blacks on cream. Should feel like printed inspection reports or safety posters." },
+  { title: "Icon Style", description: "Same hazard-symbol icons but in dark gold (#7a6210) or black on white/cream. Maintain the stencil weight and geometric sharpness." },
+  { title: "Popup/Options UI", description: "Light surfaces (#fafafa, #f5f3ee) with gold/amber accents. Same utilitarian layout. Official government-form energy — like a real inspection interface." }
+]);
+</script>
+
+</body>
+</html>
