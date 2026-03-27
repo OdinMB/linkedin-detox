@@ -10,14 +10,14 @@ Social & Communication
 
 ## Detailed Description
 
-Tired of LinkedIn posts that read like they were written by a motivational poster factory? LinkedIn Detox detects AI-generated slop in your feed and either hides it or replaces it with brutally honest roast banners.
+Tired of LinkedIn posts that read like they were written by a motivational poster factory? LinkedIn Detox detects AI-generated slop in your feed and either hides it or replaces it with honest roast banners.
 
 How it works:
 
 - Scans posts in real time as you scroll your LinkedIn feed
 - Detects AI-slop signals: buzzword density, thought-leader templates, em dash abuse, and more
 - Optional ML-powered semantic scoring catches novel AI phrasings that keyword rules miss
-- Flagged posts get replaced with satirical banners featuring original artwork
+- Flagged posts get replaced with satirical, AI-generated banners (the irony!)
 
 You control the experience:
 
