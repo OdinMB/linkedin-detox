@@ -167,6 +167,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
 
 const blockedSet = new Map();
 const analyzedHashes = new Set();
+const dismissedPosts = new WeakSet();   // Post elements the user dismissed — skip on rescan
 const ANALYZED_HASHES_MAX = 2000;
 let globalPostIndex = 0;
 
@@ -216,6 +217,7 @@ function getOverlay() {
       blockedSet.delete(hash);
       const state = liveBanners.get(hash);
       if (state) {
+        if (state.postRef) dismissedPosts.add(state.postRef);
         state.banner.remove();
         liveBanners.delete(hash);
       }
@@ -425,6 +427,7 @@ function scanFeed(config) {
     const rect = post.getBoundingClientRect();
     if (rect.height < 10) return;
 
+    if (dismissedPosts.has(post)) return;
     const text = post.innerText?.trim() || "";
     if (!text) return;
     const hash = hashText(text);
