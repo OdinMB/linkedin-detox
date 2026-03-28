@@ -2,45 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="stylesheet" href="../shared.css">
     <style>
-      :root {
-        --bg-primary: #ffffff;
-        --bg-surface: #fafafa;
-        --bg-warm: #f5f3ee;
-        --bg-header: #f0ece1;
-        --accent: #7a6210;
-        --accent-secondary: #9a7b10;
-        --danger: #c0392b;
-        --danger-dark: #922b21;
-        --text-primary: #1a1a1a;
-        --text-secondary: #555555;
-        --text-muted: #888888;
-        --caution: #f5c518;
-        --caution-dark: #d4a017;
-        --border: #d0c9b8;
-        --input-bg: #f5f3ee;
-        --toggle-on: #7a6210;
-      }
-
-      [data-theme="dark"] {
-        --bg-primary: #0d0d0d;
-        --bg-surface: #1a1a1a;
-        --bg-warm: #252525;
-        --bg-header: #1a1a1a;
-        --accent: #39ff14;
-        --accent-secondary: #1a8a0a;
-        --danger: #ff3333;
-        --danger-dark: #cc0000;
-        --text-primary: #e0e0e0;
-        --text-secondary: #9e9e9e;
-        --text-muted: #666666;
-        --caution: #f5c518;
-        --caution-dark: #d4a017;
-        --border: #333333;
-        --input-bg: #1a1a1a;
-        --toggle-on: #39ff14;
-      }
-
       * {
         box-sizing: border-box;
         margin: 0;
@@ -137,51 +100,6 @@
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-      }
-
-      /* Toggle switch */
-      .switch {
-        position: relative;
-        width: 40px;
-        height: 22px;
-      }
-
-      .switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-      }
-
-      .slider {
-        position: absolute;
-        inset: 0;
-        background: var(--border);
-        cursor: pointer;
-        transition: 0.2s;
-      }
-
-      .slider::before {
-        content: "";
-        position: absolute;
-        height: 16px;
-        width: 16px;
-        left: 3px;
-        bottom: 3px;
-        background: var(--text-muted);
-        border-radius: 2px;
-        transition: 0.2s;
-      }
-
-      .switch input:checked + .slider {
-        background: var(--toggle-on);
-      }
-      .switch input:checked + .slider::before {
-        transform: translateX(18px);
-        background: var(--bg-primary);
-      }
-
-      .switch--semantic input:checked + .slider {
-        background: var(--accent-secondary);
       }
 
       .toggle-desc {

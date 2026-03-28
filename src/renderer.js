@@ -8,9 +8,12 @@
  */
 
 (function () {
-  const ns = (window.LinkedInDetox = window.LinkedInDetox || {});
+  const _global = typeof window !== "undefined" ? window : {};
+  const ns = (_global.LinkedInDetox = _global.LinkedInDetox || {});
 
-  const escapeHtml = ns.escapeHtml;
+  const escapeHtml = (typeof ns.escapeHtml === "function")
+    ? ns.escapeHtml
+    : function (str) { return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); };
 
   // --- Banner Content ---
 
@@ -350,4 +353,18 @@
   ns.getOverlayEl = function () {
     return overlayEl;
   };
+
+  // Module exports for testing (no-op in browser)
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = {
+      getRandomRoast,
+      getRandomBannerImage,
+      clipBannerToNav,
+      ROAST_MESSAGES,
+      PROMOTED_ROAST_MESSAGES,
+      BANNER_IMAGES,
+      PROMOTED_BANNER_IMAGES,
+      escapeHtml,
+    };
+  }
 })();

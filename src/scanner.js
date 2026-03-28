@@ -164,6 +164,16 @@
 
   // Module exports for testing (no-op in browser)
   if (typeof module !== "undefined" && module.exports) {
-    module.exports = { hashText };
+    module.exports = {
+      hashText,
+      recordBlocked,
+      unblock,
+      scanFeed,
+      blockedSet,
+      analyzedHashes,
+      ANALYZED_HASHES_MAX,
+      _getState: function () { return { pendingBanners, globalPostIndex }; },
+      _resetState: function () { pendingBanners = 0; globalPostIndex = 0; analyzedHashes.clear(); blockedSet.clear(); },
+    };
   }
 })();
