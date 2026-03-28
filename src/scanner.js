@@ -7,7 +7,8 @@
  */
 
 (function () {
-  const ns = (window.LinkedInDetox = window.LinkedInDetox || {});
+  const _global = typeof window !== "undefined" ? window : {};
+  const ns = (_global.LinkedInDetox = _global.LinkedInDetox || {});
 
   // --- Selectors ---
 
@@ -29,7 +30,7 @@
     for (let i = 0; i < text.length; i++) {
       h = ((h << 5) - h + text.charCodeAt(i)) | 0;
     }
-    return String(h);
+    return `${h}:${text.length}`;
   }
 
   /**
@@ -165,4 +166,9 @@
   ns.unblock = unblock;
   ns.scanFeed = scanFeed;
   ns.runSemanticPass = runSemanticPass;
+
+  // Module exports for testing (no-op in browser)
+  if (typeof module !== "undefined" && module.exports) {
+    module.exports = { hashText };
+  }
 })();
