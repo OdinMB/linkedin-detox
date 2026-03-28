@@ -52,16 +52,27 @@
       .trim();
   }
 
+  // Lines LinkedIn puts before the actual author name in post innerText
+  var SKIP_LINES = /^(feed post|suggested|promoted|sponsored|reposted|following|follow)$/i;
+
   /**
    * Extract the author name from a post's innerText.
-   * LinkedIn puts the author name on the first line (before the first newline).
-   * Returns empty string if the first line is too long (> 120 chars, probably not a name).
+   * LinkedIn prepends accessibility labels ("Feed post", "Suggested", etc.)
+   * before the author name. We skip those and return the first real line.
+   * Returns empty string if no suitable line is found within the first 5 lines
+   * or if the candidate line is too long (> 120 chars, probably not a name).
    * @param {string} text
    * @returns {string}
    */
   function extractAuthor(text) {
-    var firstLine = normalizeText((text.split("\n")[0] || ""));
-    return firstLine.length <= 120 ? firstLine : "";
+    var lines = text.split("\n");
+    var limit = Math.min(lines.length, 5);
+    for (var i = 0; i < limit; i++) {
+      var line = normalizeText(lines[i]);
+      if (!line || SKIP_LINES.test(line)) continue;
+      return line.length <= 120 ? line : "";
+    }
+    return "";
   }
 
   /**

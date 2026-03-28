@@ -70,14 +70,21 @@
   color: #e0e0e0;
 }
 
-/* Header row — title left, close button right */
+/* Header row — title+author left, close button right */
 .ld-banner__header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   width: 100%;
   padding: 12px 20px;
   flex-shrink: 0;
+}
+
+.ld-banner__header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .ld-banner__title {
@@ -208,12 +215,11 @@
   color: #1a73e8;
 }
 
-/* Author line — name + trust button inline */
+/* Author line — name + trust button inline, sits under title in header */
 .ld-banner__author {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 12px;
 }
 
 .ld-banner__author-name {

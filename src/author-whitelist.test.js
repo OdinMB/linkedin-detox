@@ -2,11 +2,27 @@ import { describe, it, expect } from "vitest";
 import { extractAuthor, isWhitelistedAuthor, normalizeText } from "./shared/utils.js";
 
 describe("extractAuthor", () => {
-  it("returns the first line of text, trimmed", () => {
+  it("returns the first non-boilerplate line of text, trimmed", () => {
     expect(extractAuthor("Jane Doe\nSome post content here")).toBe("Jane Doe");
   });
 
-  it("trims whitespace from the first line", () => {
+  it("skips LinkedIn boilerplate lines like 'Feed post'", () => {
+    expect(extractAuthor("Feed post\nJane Doe\nSome post content")).toBe("Jane Doe");
+  });
+
+  it("skips 'Suggested' boilerplate", () => {
+    expect(extractAuthor("Suggested\nJohn Smith\nPost body")).toBe("John Smith");
+  });
+
+  it("skips 'Promoted' boilerplate", () => {
+    expect(extractAuthor("Promoted\nAcme Corp\nAd content")).toBe("Acme Corp");
+  });
+
+  it("skips multiple boilerplate lines", () => {
+    expect(extractAuthor("Feed post\n\nJane Doe\nContent")).toBe("Jane Doe");
+  });
+
+  it("trims whitespace from the author line", () => {
     expect(extractAuthor("  John Smith  \nPost body")).toBe("John Smith");
   });
 
@@ -18,14 +34,18 @@ describe("extractAuthor", () => {
     expect(extractAuthor("")).toBe("");
   });
 
-  it("returns empty string if first line is too long (> 120 chars)", () => {
+  it("returns empty string if candidate line is too long (> 120 chars)", () => {
     const longName = "A".repeat(121);
     expect(extractAuthor(longName + "\nBody")).toBe("");
   });
 
-  it("returns the name when first line is exactly 120 chars", () => {
+  it("returns the name when candidate line is exactly 120 chars", () => {
     const name = "A".repeat(120);
     expect(extractAuthor(name + "\nBody")).toBe(name);
+  });
+
+  it("returns empty string if no suitable line in first 5 lines", () => {
+    expect(extractAuthor("Feed post\nSuggested\nFollowing\nFollow\nReposted\nJane")).toBe("");
   });
 
   it("handles names with pronouns and credentials", () => {

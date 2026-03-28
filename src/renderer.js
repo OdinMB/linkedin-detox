@@ -312,13 +312,15 @@
             : "";
           banner.innerHTML = `
             <div class="ld-banner__header">
-              <span class="ld-banner__title">${escapeHtml(bannerTitle)}</span>
+              <div class="ld-banner__header-left">
+                <span class="ld-banner__title">${escapeHtml(bannerTitle)}</span>
+                ${authorLine}
+              </div>
               <button class="ld-banner__close" data-hash="${escapeHtml(hash)}" aria-label="Dismiss">&#x2715;</button>
             </div>
             <div class="ld-banner__body">
               <img class="ld-banner__img" src="${escapeHtml(entry.bannerImage)}" alt="" />
               <div class="ld-banner__meta">${escapeHtml(metaLine)}</div>
-              ${authorLine}
               <div class="ld-banner__message">${escapeHtml(entry.roastMessage)}</div>
             </div>
           `;
