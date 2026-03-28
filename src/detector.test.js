@@ -6,6 +6,7 @@ import {
   analyzePost,
   isPromotedPost,
   SIGNAL_WORDS,
+  SIGNAL_WORD_LABELS,
   COOCCURRENCE_PATTERNS,
 } from "./detector.js";
 
@@ -263,5 +264,110 @@ describe("analyzePost", () => {
       ],
     });
     expect(result.matches).toEqual(expect.arrayContaining(["amazing opportunity"]));
+  });
+});
+
+// --- SIGNAL_WORD_LABELS ---
+
+describe("SIGNAL_WORD_LABELS", () => {
+  it("has same length as SIGNAL_WORDS", () => {
+    expect(SIGNAL_WORD_LABELS.length).toBe(SIGNAL_WORDS.length);
+  });
+});
+
+// --- wordFrequencyScorer with deletedBuiltinLabels ---
+
+describe("wordFrequencyScorer with deletedBuiltinLabels", () => {
+  it("excludes deleted built-in words from scoring", () => {
+    const result = wordFrequencyScorer("We need to leverage our assets.", undefined, new Set(["leverage"]));
+    expect(result.score).toBe(0);
+    expect(result.matches).toHaveLength(0);
+  });
+
+  it("still detects non-deleted built-in words", () => {
+    const result = wordFrequencyScorer("We need to leverage synergy.", undefined, new Set(["leverage"]));
+    expect(result.matches).toEqual(expect.arrayContaining(["synergy"]));
+    expect(result.matches).not.toEqual(expect.arrayContaining(["leverage"]));
+  });
+
+  it("works with empty deletedBuiltinLabels", () => {
+    const result = wordFrequencyScorer("We need to leverage our assets.", undefined, new Set());
+    expect(result.matches).toEqual(expect.arrayContaining(["leverage"]));
+  });
+
+  it("works with undefined deletedBuiltinLabels (backward compat)", () => {
+    const result = wordFrequencyScorer("We need to leverage our assets.");
+    expect(result.matches).toEqual(expect.arrayContaining(["leverage"]));
+  });
+
+  it("still includes user words even when built-ins are deleted", () => {
+    const userWords = [/\bfoobar(s)?\b/gi];
+    const result = wordFrequencyScorer("Check foobar leverage.", userWords, new Set(["leverage"]));
+    expect(result.matches).toEqual(expect.arrayContaining(["foobar"]));
+    expect(result.matches).not.toEqual(expect.arrayContaining(["leverage"]));
+  });
+});
+
+// --- cooccurrenceScorer with deletedBuiltinLabels ---
+
+describe("cooccurrenceScorer with deletedBuiltinLabels", () => {
+  it("excludes deleted built-in patterns from scoring", () => {
+    const result = cooccurrenceScorer(
+      "I'm humbled to share that we just raised our Series A.",
+      undefined,
+      new Set(["humbled to share"])
+    );
+    expect(result.score).toBe(0);
+    expect(result.matches).toHaveLength(0);
+  });
+
+  it("still detects non-deleted built-in patterns", () => {
+    const result = cooccurrenceScorer(
+      "I'm humbled to share. Here's the interesting thing.",
+      undefined,
+      new Set(["humbled to share"])
+    );
+    expect(result.matches).toEqual(expect.arrayContaining(["interesting thing"]));
+    expect(result.matches).not.toEqual(expect.arrayContaining(["humbled to share"]));
+  });
+
+  it("works with undefined deletedBuiltinLabels (backward compat)", () => {
+    const result = cooccurrenceScorer("I'm humbled to share that we raised.");
+    expect(result.matches).toEqual(expect.arrayContaining(["humbled to share"]));
+  });
+
+  it("still includes user patterns when built-ins are deleted", () => {
+    const userPatterns = [
+      { groups: [["amazing"], ["opportunity"]], label: "amazing opportunity" },
+    ];
+    const result = cooccurrenceScorer(
+      "I'm humbled to share. An amazing opportunity.",
+      userPatterns,
+      new Set(["humbled to share"])
+    );
+    expect(result.matches).toEqual(expect.arrayContaining(["amazing opportunity"]));
+    expect(result.matches).not.toEqual(expect.arrayContaining(["humbled to share"]));
+  });
+});
+
+// --- analyzePost with deleted builtins ---
+
+describe("analyzePost with deleted builtins", () => {
+  it("respects deletedBuiltinWords in config", () => {
+    const result = analyzePost("We leverage synergy to unlock growth.", {
+      threshold: 10,
+      deletedBuiltinWords: new Set(["leverage", "synergy", "unlock"]),
+    });
+    expect(result.matches).not.toEqual(expect.arrayContaining(["leverage"]));
+    expect(result.matches).not.toEqual(expect.arrayContaining(["synergy"]));
+    expect(result.matches).not.toEqual(expect.arrayContaining(["unlock"]));
+  });
+
+  it("respects deletedBuiltinCoocLabels in config", () => {
+    const result = analyzePost("I'm humbled to share this.", {
+      threshold: 10,
+      deletedBuiltinCoocLabels: new Set(["humbled to share"]),
+    });
+    expect(result.matches).not.toEqual(expect.arrayContaining(["humbled to share"]));
   });
 });

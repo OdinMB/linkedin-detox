@@ -81,11 +81,18 @@ const els = {
   // Debug
   testMode: document.getElementById("toggle-test-mode"),
   debugLogging: document.getElementById("toggle-debug-logging"),
+  // Restore buttons
+  restoreBuiltinWords: document.getElementById("restore-builtin-words"),
+  restoreBuiltinCooc: document.getElementById("restore-builtin-cooc"),
+  restoreBuiltinPhrases: document.getElementById("restore-builtin-phrases"),
 };
 
 let userSignalWords = [];
 let userCooccurrencePatterns = [];
 let userSemanticPhrases = [];
+let deletedBuiltinWords = [];
+let deletedBuiltinCoocLabels = [];
+let deletedBuiltinPhrases = [];
 
 // --- Theme ---
 
@@ -150,23 +157,111 @@ function renderCoocPatterns() {
 }
 
 function renderBuiltinWords() {
-  els.builtinWords.innerHTML = '<div class="builtin-grid">' +
-    BUILTIN_SIGNAL_WORDS.map(
-      (w) => `<div class="builtin-item">${w}</div>`
-    ).join("") + "</div>";
+  const activeWords = BUILTIN_SIGNAL_WORDS.filter((w) => !deletedBuiltinWords.includes(w));
+  els.builtinWords.innerHTML = activeWords.length === 0
+    ? '<div class="builtin-item" style="font-style:italic">All defaults removed</div>'
+    : activeWords.map((w) => `
+      <div class="builtin-item-interactive">
+        <span>${escapeHtml(w)}</span>
+        <div class="builtin-item-actions">
+          <button data-word="${escapeHtml(w)}" data-action="edit" title="Edit (copies to custom list)">&#9998;</button>
+          <button data-word="${escapeHtml(w)}" data-action="delete" title="Remove">&times;</button>
+        </div>
+      </div>
+    `).join("");
+
+  els.builtinWords.querySelectorAll("button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const word = btn.dataset.word;
+      if (btn.dataset.action === "delete") {
+        deletedBuiltinWords.push(word);
+        saveDeletedBuiltins();
+        renderBuiltinWords();
+      } else if (btn.dataset.action === "edit") {
+        // Copy to user list immediately, pre-fill input for tweaking
+        if (!userSignalWords.includes(word)) {
+          userSignalWords.push(word);
+          savePatterns();
+          renderSignalWords();
+        }
+        els.newSignalWord.value = word;
+        els.newSignalWord.focus();
+        deletedBuiltinWords.push(word);
+        saveDeletedBuiltins();
+        renderBuiltinWords();
+      }
+    });
+  });
+
+  els.restoreBuiltinWords.style.display = deletedBuiltinWords.length > 0 ? "" : "none";
 }
 
 function renderBuiltinCooc() {
-  els.builtinCooc.innerHTML = BUILTIN_COOC_PATTERNS.map(
-    (p) => `<div class="builtin-item"><strong>${p.label}</strong>: [${p.a}] + [${p.b}]</div>`
-  ).join("");
+  const activePatterns = BUILTIN_COOC_PATTERNS.filter((p) => !deletedBuiltinCoocLabels.includes(p.label));
+  els.builtinCooc.innerHTML = activePatterns.length === 0
+    ? '<div class="builtin-item" style="font-style:italic">All defaults removed</div>'
+    : activePatterns.map((p) => `
+      <div class="builtin-item-interactive">
+        <span><strong>${escapeHtml(p.label)}</strong>: [${escapeHtml(p.a)}] + [${escapeHtml(p.b)}]</span>
+        <div class="builtin-item-actions">
+          <button data-label="${escapeHtml(p.label)}" data-a="${escapeHtml(p.a)}" data-b="${escapeHtml(p.b)}" data-action="edit" title="Edit (copies to custom list)">&#9998;</button>
+          <button data-label="${escapeHtml(p.label)}" data-action="delete" title="Remove">&times;</button>
+        </div>
+      </div>
+    `).join("");
+
+  els.builtinCooc.querySelectorAll("button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const label = btn.dataset.label;
+      if (btn.dataset.action === "delete") {
+        deletedBuiltinCoocLabels.push(label);
+        saveDeletedBuiltins();
+        renderBuiltinCooc();
+      } else if (btn.dataset.action === "edit") {
+        // Copy to user list immediately, pre-fill inputs for tweaking
+        const groupA = btn.dataset.a.split(",").map((s) => s.trim()).filter(Boolean);
+        const groupB = btn.dataset.b.split(",").map((s) => s.trim()).filter(Boolean);
+        if (!userCooccurrencePatterns.some((p) => p.label === label)) {
+          userCooccurrencePatterns.push({ groups: [groupA, groupB], label });
+          savePatterns();
+          renderCoocPatterns();
+        }
+        els.newCoocLabel.value = label;
+        els.newCoocA.value = btn.dataset.a;
+        els.newCoocB.value = btn.dataset.b;
+        els.newCoocLabel.focus();
+        deletedBuiltinCoocLabels.push(label);
+        saveDeletedBuiltins();
+        renderBuiltinCooc();
+      }
+    });
+  });
+
+  els.restoreBuiltinCooc.style.display = deletedBuiltinCoocLabels.length > 0 ? "" : "none";
 }
 
 function renderBuiltinPhrases() {
-  els.builtinPhrases.innerHTML = '<div class="builtin-grid">' +
-    BUILTIN_SEMANTIC_PHRASES.map(
-      (p) => `<div class="builtin-item">${p}</div>`
-    ).join("") + "</div>";
+  const activePhrases = BUILTIN_SEMANTIC_PHRASES.filter((p) => !deletedBuiltinPhrases.includes(p));
+  els.builtinPhrases.innerHTML = activePhrases.length === 0
+    ? '<div class="builtin-item" style="font-style:italic">All defaults removed</div>'
+    : activePhrases.map((p) => `
+      <div class="builtin-item-interactive">
+        <span>${escapeHtml(p)}</span>
+        <div class="builtin-item-actions">
+          <button data-phrase="${escapeHtml(p)}" data-action="delete" title="Remove">&times;</button>
+        </div>
+      </div>
+    `).join("");
+
+  els.builtinPhrases.querySelectorAll("button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      deletedBuiltinPhrases.push(btn.dataset.phrase);
+      saveDeletedBuiltins();
+      renderBuiltinPhrases();
+    });
+  });
+
+  els.restoreBuiltinPhrases.style.display = deletedBuiltinPhrases.length > 0 ? "" : "none";
 }
 
 function renderSemanticPhrases() {
@@ -215,6 +310,14 @@ function saveLocal() {
   });
 }
 
+function saveDeletedBuiltins() {
+  chrome.storage.sync.set({
+    deletedBuiltinWords: deletedBuiltinWords,
+    deletedBuiltinCoocLabels: deletedBuiltinCoocLabels,
+    deletedBuiltinPhrases: deletedBuiltinPhrases,
+  });
+}
+
 function loadState() {
   chrome.storage.sync.get(
     {
@@ -226,6 +329,9 @@ function loadState() {
       theme: "light",
       userSignalWords: [],
       userCooccurrencePatterns: [],
+      deletedBuiltinWords: [],
+      deletedBuiltinCoocLabels: [],
+      deletedBuiltinPhrases: [],
     },
     (items) => {
       els.semanticEnabled.checked = items.semanticEnabled;
@@ -238,9 +344,15 @@ function loadState() {
 
       userSignalWords = items.userSignalWords || [];
       userCooccurrencePatterns = items.userCooccurrencePatterns || [];
+      deletedBuiltinWords = items.deletedBuiltinWords || [];
+      deletedBuiltinCoocLabels = items.deletedBuiltinCoocLabels || [];
+      deletedBuiltinPhrases = items.deletedBuiltinPhrases || [];
 
       renderSignalWords();
       renderCoocPatterns();
+      renderBuiltinWords();
+      renderBuiltinCooc();
+      renderBuiltinPhrases();
     }
   );
 
@@ -249,10 +361,6 @@ function loadState() {
     renderSemanticPhrases();
   });
 
-  // Static renders (only need to run once)
-  renderBuiltinWords();
-  renderBuiltinCooc();
-  renderBuiltinPhrases();
 }
 
 // --- Embedding ---
@@ -369,6 +477,25 @@ els.toggleBuiltinPhrases.addEventListener("click", () => {
   els.toggleBuiltinPhrases.textContent = els.builtinPhrases.classList.contains("open")
     ? "Hide the ~50 built-in phrase variations we sniff for"
     : "Show the ~50 built-in phrase variations we sniff for";
+});
+
+// Restore buttons
+els.restoreBuiltinWords.addEventListener("click", () => {
+  deletedBuiltinWords = [];
+  saveDeletedBuiltins();
+  renderBuiltinWords();
+});
+
+els.restoreBuiltinCooc.addEventListener("click", () => {
+  deletedBuiltinCoocLabels = [];
+  saveDeletedBuiltins();
+  renderBuiltinCooc();
+});
+
+els.restoreBuiltinPhrases.addEventListener("click", () => {
+  deletedBuiltinPhrases = [];
+  saveDeletedBuiltins();
+  renderBuiltinPhrases();
 });
 
 // Tabs

@@ -47,6 +47,18 @@ async function _loadPhraseBank() {
     console.error("[LinkedIn Detox] Failed to load phrase embeddings:", err);
     _phraseBank = [];
   }
+  // Filter out deleted built-in phrases
+  try {
+    const syncItems = await new Promise((resolve) =>
+      chrome.storage.sync.get({ deletedBuiltinPhrases: [] }, resolve)
+    );
+    const deletedPhrases = new Set(syncItems.deletedBuiltinPhrases || []);
+    if (deletedPhrases.size > 0) {
+      _phraseBank = _phraseBank.filter((p) => !deletedPhrases.has(p.label));
+    }
+  } catch (err) {
+    console.error("[LinkedIn Detox] Failed to load deleted phrase settings:", err);
+  }
   // Merge user-defined semantic phrases from storage
   try {
     const items = await new Promise((resolve) =>

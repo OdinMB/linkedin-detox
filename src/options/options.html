@@ -357,6 +357,58 @@
       padding: 2px 0;
     }
 
+    .builtin-item-interactive {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2px 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .builtin-item-interactive:hover {
+      background: color-mix(in srgb, var(--accent) 8%, transparent);
+    }
+
+    .builtin-item-interactive button {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 12px;
+      padding: 0 3px;
+      flex-shrink: 0;
+    }
+
+    .builtin-item-interactive button:hover {
+      color: var(--danger);
+    }
+
+    .builtin-item-actions {
+      display: flex;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+
+    .restore-btn {
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      color: var(--danger);
+      background: none;
+      border: 1px solid var(--danger);
+      padding: 4px 10px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 6px;
+    }
+
+    .restore-btn:hover {
+      background: var(--danger);
+      color: var(--bg-primary);
+    }
+
     /* Semantic phrase inputs */
     .phrase-inputs {
       display: flex;
@@ -473,6 +525,7 @@
         </div>
         <div class="collapsible-header" id="toggle-builtin-words">Show the usual suspects</div>
         <div class="collapsible-body" id="builtin-words"></div>
+        <button class="restore-btn" id="restore-builtin-words" style="display:none">Restore default signal words</button>
       </div>
 
       <div class="subsection">
@@ -489,6 +542,7 @@
         </div>
         <div class="collapsible-header" id="toggle-builtin-cooc">Show built-in combos</div>
         <div class="collapsible-body" id="builtin-cooc"></div>
+        <button class="restore-btn" id="restore-builtin-cooc" style="display:none">Restore default combos</button>
       </div>
     </div>
 
@@ -508,6 +562,7 @@
       <div class="subsection">
         <div class="collapsible-header" id="toggle-builtin-phrases">Show the ~50 built-in phrase variations we sniff for</div>
         <div class="collapsible-body" id="builtin-phrases"></div>
+        <button class="restore-btn" id="restore-builtin-phrases" style="display:none">Restore default phrases</button>
       </div>
 
       <div class="subsection">

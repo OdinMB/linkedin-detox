@@ -117,6 +117,8 @@ const DEFAULT_CONFIG = {
   theme: "light",
   userSignalWords: [],
   userCooccurrencePatterns: [],
+  deletedBuiltinWords: [],
+  deletedBuiltinCoocLabels: [],
 };
 
 function log(...args) {
@@ -135,6 +137,8 @@ function loadConfig() {
           return new RegExp(`\\b${escaped}(s|ed|ing|er|ly|tion|ment)?\\b`, "gi");
         });
       }
+      items.deletedBuiltinWords = new Set(items.deletedBuiltinWords || []);
+      items.deletedBuiltinCoocLabels = new Set(items.deletedBuiltinCoocLabels || []);
       currentConfig = { ...items, _blocked: 0 };
       resolve(currentConfig);
     });
@@ -149,6 +153,13 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== "sync") return;
   for (const [key, { newValue }] of Object.entries(changes)) {
     currentConfig[key] = newValue;
+  }
+  // Re-convert deleted-builtin arrays to Sets (storage always returns plain arrays)
+  if (changes.deletedBuiltinWords) {
+    currentConfig.deletedBuiltinWords = new Set(currentConfig.deletedBuiltinWords || []);
+  }
+  if (changes.deletedBuiltinCoocLabels) {
+    currentConfig.deletedBuiltinCoocLabels = new Set(currentConfig.deletedBuiltinCoocLabels || []);
   }
   if (changes.sensitivity) {
     currentConfig.threshold = SENSITIVITY_THRESHOLDS[currentConfig.sensitivity] || 25;

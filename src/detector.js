@@ -93,14 +93,31 @@ const SIGNAL_WORDS = [
   /\bever[-\s]?evolving\b/gi,
 ];
 
+const SIGNAL_WORD_LABELS = [
+  "leverage", "journey", "game-changer", "mindset", "synergy",
+  "unlock", "scale", "disrupt", "action/actionable", "framework",
+  "ecosystem", "resonate", "impactful", "transformative", "thought leader",
+  "delve", "tapestry", "realm", "beacon", "intricate",
+  "robust", "seamless", "pivotal", "foster", "harness",
+  "holistic", "vibrant", "embark", "unprecedented", "groundbreaking",
+  "testament", "navigate", "elevate", "empower", "comprehensive",
+  "curate", "streamline", "revolutionize", "cutting-edge", "spearhead",
+  "landscape", "ever-evolving",
+];
+
 /**
  * Scores density of AI-typical signal words.
  * @param {string} text
  * @param {RegExp[]} [userWords] - Additional user-defined regex patterns
+ * @param {Set<string>} [deletedBuiltinLabels] - Labels of built-in words to exclude
  * @returns {{ score: number, matches: string[] }}
  */
-function wordFrequencyScorer(text, userWords) {
-  const allPatterns = userWords ? [...SIGNAL_WORDS, ...userWords] : SIGNAL_WORDS;
+function wordFrequencyScorer(text, userWords, deletedBuiltinLabels) {
+  let builtins = SIGNAL_WORDS;
+  if (deletedBuiltinLabels && deletedBuiltinLabels.size > 0) {
+    builtins = SIGNAL_WORDS.filter((_, i) => !deletedBuiltinLabels.has(SIGNAL_WORD_LABELS[i]));
+  }
+  const allPatterns = userWords ? [...builtins, ...userWords] : builtins;
   const words = text.split(/\s+/).filter((w) => w.length > 0);
   if (words.length === 0) return { score: 0, matches: [] };
 
@@ -168,12 +185,17 @@ const COOCCURRENCE_PATTERNS = [
  * Detects thought leader sentence templates via co-occurrence.
  * @param {string} text
  * @param {Array} [userPatterns] - Additional user-defined patterns
+ * @param {Set<string>} [deletedBuiltinLabels] - Labels of built-in patterns to exclude
  * @returns {{ score: number, matches: string[] }}
  */
-function cooccurrenceScorer(text, userPatterns) {
+function cooccurrenceScorer(text, userPatterns, deletedBuiltinLabels) {
+  let builtins = COOCCURRENCE_PATTERNS;
+  if (deletedBuiltinLabels && deletedBuiltinLabels.size > 0) {
+    builtins = COOCCURRENCE_PATTERNS.filter((p) => !deletedBuiltinLabels.has(p.label));
+  }
   const allPatterns = userPatterns
-    ? [...COOCCURRENCE_PATTERNS, ...userPatterns]
-    : COOCCURRENCE_PATTERNS;
+    ? [...builtins, ...userPatterns]
+    : builtins;
   const sentences = splitSentences(text);
   const matches = [];
 
@@ -229,8 +251,8 @@ function analyzePost(text, config) {
 
   const allResults = [
     emDashScorer(text),
-    wordFrequencyScorer(text, config.userSignalWords),
-    cooccurrenceScorer(text, config.userCooccurrencePatterns),
+    wordFrequencyScorer(text, config.userSignalWords, config.deletedBuiltinWords),
+    cooccurrenceScorer(text, config.userCooccurrencePatterns, config.deletedBuiltinCoocLabels),
   ];
 
   const maxScore = Math.max(...allResults.map((r) => r.score));
@@ -285,6 +307,7 @@ if (typeof module !== "undefined" && module.exports) {
     analyzePostAsync,
     isPromotedPost,
     SIGNAL_WORDS,
+    SIGNAL_WORD_LABELS,
     COOCCURRENCE_PATTERNS,
   };
 }
