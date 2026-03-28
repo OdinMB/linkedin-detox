@@ -31,7 +31,7 @@
 
   function loadConfig() {
     return ns.loadConfig().then((items) => {
-      currentConfig = { ...items, _blocked: 0 };
+      currentConfig = { ...items };
       return currentConfig;
     });
   }

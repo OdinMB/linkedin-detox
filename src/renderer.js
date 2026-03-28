@@ -219,8 +219,10 @@
     });
 
     // Expensive path: rescan visible posts via innerText to create/re-link banners.
+    // Throttled to 1000ms. Only fires when there are pending banners that haven't
+    // been created yet, or when other triggers (detectStale, bannersDirty) are set.
     const now = performance.now();
-    const needsPeriodicScan = deps.blockedSet.size > liveBanners.size && now - lastSlowPathTime > 200;
+    const needsPeriodicScan = ns.hasPendingBanners() && now - lastSlowPathTime > 1000;
     if (detectStale || bannersDirty || needsPeriodicScan) {
       bannersDirty = false;
       lastSlowPathTime = now;
@@ -290,6 +292,7 @@
         clipBannerToNav(banner, rect, navBottom);
         overlay.appendChild(banner);
         liveBanners.set(hash, { banner, postRef: post });
+        ns.decrementPendingBanners();
       });
     }
 

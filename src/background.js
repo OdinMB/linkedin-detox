@@ -46,11 +46,21 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if (area === "sync" && changes.showBadge) updateBadge();
 });
 
+// Reset blocked count on service worker startup (session reset)
+chrome.storage.local.set({ blockedCount: 0 });
 updateBadge();
 
 // --- Message relay ---
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === "blocked") {
+    chrome.storage.local.get({ blockedCount: 0 }, (items) => {
+      const newCount = (items.blockedCount || 0) + 1;
+      chrome.storage.local.set({ blockedCount: newCount });
+    });
+    return;
+  }
+
   if (message.type !== "embed") return;
 
   (async () => {

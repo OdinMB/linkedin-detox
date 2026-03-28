@@ -22,6 +22,7 @@
   const dismissedPosts = new WeakSet();
   const ANALYZED_HASHES_MAX = 2000;
   let globalPostIndex = 0;
+  let pendingBanners = 0;
 
   // --- Helpers ---
 
@@ -39,11 +40,10 @@
    * @param {object} result - { blocked, score, matches }
    * @param {string} type - "slop" or "promoted"
    * @param {object} callbacks - { getRandomRoast, getRandomBannerImage, log }
-   * @param {object} configRef - currentConfig reference for _blocked counter
    */
-  function recordBlocked(hash, result, type, callbacks, configRef) {
-    configRef._blocked = (configRef._blocked || 0) + 1;
-    chrome.storage.local.set({ blockedCount: configRef._blocked });
+  function recordBlocked(hash, result, type, callbacks) {
+    pendingBanners++;
+    chrome.runtime.sendMessage({ type: "blocked" }).catch(() => {});
     ns.markDirty();
     blockedSet.set(hash, {
       result,
@@ -100,14 +100,14 @@
       const currentIndex = globalPostIndex++;
 
       if (config.testMode && (currentIndex === 2 || currentIndex === 4)) {
-        recordBlocked(hash, { blocked: true, score: 99, matches: ["Test mode"] }, "slop", callbacks, config);
+        recordBlocked(hash, { blocked: true, score: 99, matches: ["Test mode"] }, "slop", callbacks);
         callbacks.log(`[LinkedIn Detox] Test-blocked post #${currentIndex + 1} (hash=${hash})`);
         return;
       }
 
       // Promoted detection -- binary check, runs before slop analysis
       if (config.blockPromoted && isPromotedPost(text)) {
-        recordBlocked(hash, { blocked: true, score: 100, matches: ["Promoted"] }, "promoted", callbacks, config);
+        recordBlocked(hash, { blocked: true, score: 100, matches: ["Promoted"] }, "promoted", callbacks);
         callbacks.log(`[LinkedIn Detox] Promoted post blocked (hash=${hash})`);
         return;
       }
@@ -120,7 +120,7 @@
       try {
         const result = await analyzePostAsync(text, config);
         if (result.blocked) {
-          recordBlocked(hash, result, "slop", callbacks, config);
+          recordBlocked(hash, result, "slop", callbacks);
         }
       } catch (err) {
         console.error("[LinkedIn Detox] Analysis failed:", err);
@@ -144,6 +144,12 @@
   ns.hashText = hashText;
   ns.unblock = unblock;
   ns.scanFeed = scanFeed;
+  ns.decrementPendingBanners = function () {
+    pendingBanners = Math.max(0, pendingBanners - 1);
+  };
+  ns.hasPendingBanners = function () {
+    return pendingBanners > 0;
+  };
 
   // Module exports for testing (no-op in browser)
   if (typeof module !== "undefined" && module.exports) {
