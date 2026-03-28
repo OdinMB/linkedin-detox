@@ -28,7 +28,7 @@ Chrome extension that detects AI-generated slop on LinkedIn and either hides it 
 │   │   └── transformers.min.js # @xenova/transformers CJS bundle (~877KB)
 │   ├── shared/
 │   │   ├── config.js       # DEFAULT_CONFIG, SENSITIVITY_THRESHOLDS, loadConfig()
-│   │   ├── utils.js        # escapeHtml(), splitSentences()
+│   │   ├── utils.js        # escapeHtml(), splitSentences(), extractAuthor(), isWhitelistedAuthor()
 │   │   └── embed.js        # embedSentences(), embedPhrase()
 │   ├── scanner.js          # Feed scanning + detection pipeline orchestration
 │   ├── renderer.js         # Banner/overlay rendering + DOM manipulation
@@ -109,6 +109,8 @@ Plus one optional async scorer:
 This means the model is never invoked for posts that heuristics already catch, keeping the common case fast.
 
 **Promoted post detection:** Before any scoring runs, `isPromotedPost(text)` checks for "Promoted" (case-sensitive, word-boundary) in the first 200 characters. If matched and `blockPromoted` is enabled, the post is blocked immediately with a distinct blue-themed banner — no slop scoring runs. This is a binary check with no threshold.
+
+**Author whitelist:** Before any detection runs, `scanner.js` extracts the author name from the first line of the post's `innerText` and checks it against `whitelistedAuthorsSet` (a `Set` of lowercased names built from `config.whitelistedAuthors`). If matched (case-insensitive substring), the post is skipped entirely. Authors can be whitelisted from the options page ("Trusted Authors" section) or via the checkmark button on roast-mode banners. The whitelist is stored in `chrome.storage.sync` as `whitelistedAuthors` (array of display names). Changes take effect without page reload.
 
 **Scoring combination:** `finalScore = max(allScores)`. One strong signal is enough to flag a post. The threshold slider in the popup controls sensitivity.
 

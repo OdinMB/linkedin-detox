@@ -119,6 +119,32 @@
     overlayEl = document.createElement("div");
     overlayEl.id = "ld-overlay";
     overlayEl.addEventListener("mousedown", (e) => {
+      // Handle "Trust Author" button
+      const trustBtn = e.target.closest(".ld-banner__trust");
+      if (trustBtn) {
+        const hash = trustBtn.dataset.hash;
+        const entry = deps.blockedSet.get(hash);
+        if (entry && entry.authorName) {
+          // Add author to whitelist in storage
+          chrome.storage.sync.get({ whitelistedAuthors: [] }, (items) => {
+            const list = items.whitelistedAuthors || [];
+            if (!list.some((n) => n.toLowerCase() === entry.authorName.toLowerCase())) {
+              list.push(entry.authorName);
+              chrome.storage.sync.set({ whitelistedAuthors: list });
+            }
+          });
+          // Remove banner (same as dismiss)
+          ns.unblock(hash);
+          deps.analyzedHashes.delete(hash);
+          const state = liveBanners.get(hash);
+          if (state) {
+            state.banner.remove();
+            liveBanners.delete(hash);
+          }
+        }
+        return;
+      }
+
       const btn = e.target.closest(".ld-banner__close");
       if (!btn) return;
       const hash = btn.dataset.hash;
@@ -276,10 +302,13 @@
             ? `${metaLabel}: Sponsored Content`
             : `${metaLabel}: ${entry.result.score}%`
               + (triggers ? ` // Triggered by: ${triggers}` : "");
+          const trustButton = (!isPromoted && entry.authorName)
+            ? `<button class="ld-banner__trust" data-hash="${escapeHtml(hash)}" aria-label="Trust Author" title="Trust this author">&#x2713;</button>`
+            : "";
           banner.innerHTML = `
             <div class="ld-banner__header">
               <span class="ld-banner__title">${escapeHtml(bannerTitle)}</span>
-              <button class="ld-banner__close" data-hash="${escapeHtml(hash)}" aria-label="Dismiss">&#x2715;</button>
+              <div class="ld-banner__actions">${trustButton}<button class="ld-banner__close" data-hash="${escapeHtml(hash)}" aria-label="Dismiss">&#x2715;</button></div>
             </div>
             <div class="ld-banner__body">
               <img class="ld-banner__img" src="${escapeHtml(entry.bannerImage)}" alt="" />

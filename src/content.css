@@ -207,3 +207,43 @@
 .ld-banner--promoted.ld-banner--dark .ld-banner__close:hover {
   color: #1a73e8;
 }
+
+/* Actions container in banner header */
+.ld-banner__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Trust Author button */
+.ld-banner__trust {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: #7a6210;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.ld-banner--dark .ld-banner__trust {
+  color: #39ff14;
+}
+
+.ld-banner__trust:hover {
+  color: #2e7d32;
+}
+
+.ld-banner--dark .ld-banner__trust:hover {
+  color: #66bb6a;
+}

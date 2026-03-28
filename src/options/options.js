@@ -72,6 +72,10 @@ const els = {
   newPhraseLabel: document.getElementById("new-phrase-label"),
   addPhraseBtn: document.getElementById("add-phrase-btn"),
   embedStatus: document.getElementById("embed-status"),
+  // Trusted Authors
+  whitelistAuthorList: document.getElementById("whitelist-author-list"),
+  newWhitelistAuthor: document.getElementById("new-whitelist-author"),
+  addWhitelistAuthorBtn: document.getElementById("add-whitelist-author-btn"),
   // Filters
   blockPromoted: document.getElementById("toggle-promoted"),
   // Theme
@@ -90,6 +94,7 @@ const els = {
 let userSignalWords = [];
 let userCooccurrencePatterns = [];
 let userSemanticPhrases = [];
+let whitelistedAuthors = [];
 let deletedBuiltinWords = [];
 let deletedBuiltinCoocLabels = [];
 let deletedBuiltinPhrases = [];
@@ -129,6 +134,27 @@ function renderSignalWords() {
       userSignalWords.splice(parseInt(btn.dataset.index), 1);
       savePatterns();
       renderSignalWords();
+    });
+  });
+}
+
+function renderWhitelistedAuthors() {
+  els.whitelistAuthorList.innerHTML = whitelistedAuthors
+    .map(
+      (name, i) => `
+    <div class="pattern-item">
+      <span>${escapeHtml(name)}</span>
+      <button data-index="${i}" title="Remove">&times;</button>
+    </div>
+  `
+    )
+    .join("");
+
+  els.whitelistAuthorList.querySelectorAll("button").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      whitelistedAuthors.splice(parseInt(btn.dataset.index), 1);
+      saveWhitelist();
+      renderWhitelistedAuthors();
     });
   });
 }
@@ -302,6 +328,10 @@ function savePatterns() {
   });
 }
 
+function saveWhitelist() {
+  chrome.storage.sync.set({ whitelistedAuthors: whitelistedAuthors });
+}
+
 function saveLocal() {
   chrome.storage.local.set({
     userSemanticPhrases: userSemanticPhrases,
@@ -330,6 +360,7 @@ function loadState() {
       deletedBuiltinWords: [],
       deletedBuiltinCoocLabels: [],
       deletedBuiltinPhrases: [],
+      whitelistedAuthors: [],
     },
     (items) => {
       els.semanticEnabled.checked = items.semanticEnabled;
@@ -345,7 +376,9 @@ function loadState() {
       deletedBuiltinWords = items.deletedBuiltinWords || [];
       deletedBuiltinCoocLabels = items.deletedBuiltinCoocLabels || [];
       deletedBuiltinPhrases = items.deletedBuiltinPhrases || [];
+      whitelistedAuthors = items.whitelistedAuthors || [];
 
+      renderWhitelistedAuthors();
       renderSignalWords();
       renderCoocPatterns();
       renderBuiltinWords();
@@ -373,6 +406,21 @@ els.showBadge.addEventListener("change", saveToggles);
 els.testMode.addEventListener("change", saveToggles);
 els.debugLogging.addEventListener("change", saveToggles);
 els.theme.addEventListener("change", saveTheme);
+
+// Trusted authors
+els.addWhitelistAuthorBtn.addEventListener("click", () => {
+  const val = els.newWhitelistAuthor.value.trim();
+  if (val && !whitelistedAuthors.some((n) => n.toLowerCase() === val.toLowerCase())) {
+    whitelistedAuthors.push(val);
+    els.newWhitelistAuthor.value = "";
+    saveWhitelist();
+    renderWhitelistedAuthors();
+  }
+});
+
+els.newWhitelistAuthor.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") els.addWhitelistAuthorBtn.click();
+});
 
 // Signal words
 els.addSignalWordBtn.addEventListener("click", () => {

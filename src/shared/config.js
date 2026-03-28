@@ -24,6 +24,7 @@
     userCooccurrencePatterns: [],
     deletedBuiltinWords: [],
     deletedBuiltinCoocLabels: [],
+    whitelistedAuthors: [],
   };
 
   /**
@@ -43,6 +44,9 @@
         }
         items.deletedBuiltinWords = new Set(items.deletedBuiltinWords || []);
         items.deletedBuiltinCoocLabels = new Set(items.deletedBuiltinCoocLabels || []);
+        items.whitelistedAuthorsSet = new Set(
+          (items.whitelistedAuthors || []).map(function (n) { return n.toLowerCase(); })
+        );
         resolve(items);
       });
     });

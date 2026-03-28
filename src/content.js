@@ -42,6 +42,7 @@
     ns.render(currentConfig, {
       blockedSet: ns.blockedSet,
       dismissedPosts: ns.dismissedPosts,
+      analyzedHashes: ns.analyzedHashes,
       hashText: ns.hashText,
       isContextValid: isContextValid,
     });
@@ -83,6 +84,29 @@
     }
     if (changes.sensitivity) {
       currentConfig.threshold = SENSITIVITY_THRESHOLDS[currentConfig.sensitivity] || 25;
+    }
+    // Whitelist change: rebuild Set and un-block matching authors (no reload needed)
+    if (changes.whitelistedAuthors) {
+      currentConfig.whitelistedAuthorsSet = new Set(
+        (currentConfig.whitelistedAuthors || []).map((n) => n.toLowerCase())
+      );
+      // Un-block posts whose author now matches the whitelist
+      ns.blockedSet.forEach((entry, hash) => {
+        if (entry.authorName && ns.isWhitelistedAuthor(entry.authorName, currentConfig.whitelistedAuthorsSet)) {
+          ns.unblock(hash);
+          ns.analyzedHashes.delete(hash);
+          const state = ns.liveBanners.get(hash);
+          if (state) {
+            state.banner.remove();
+            ns.liveBanners.delete(hash);
+          }
+        }
+      });
+      // If only whitelistedAuthors changed, skip reload
+      if (Object.keys(changes).length === 1) {
+        renderWithDeps();
+        return;
+      }
     }
     // Theme-only change: re-render banners with new class, no reload needed
     if (Object.keys(changes).length === 1 && changes.theme) {

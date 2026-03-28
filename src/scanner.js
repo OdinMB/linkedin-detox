@@ -39,15 +39,17 @@
    * @param {string} hash
    * @param {object} result - { blocked, score, matches }
    * @param {string} type - "slop" or "promoted"
+   * @param {string} authorName - extracted author name (may be empty)
    * @param {object} callbacks - { getRandomRoast, getRandomBannerImage, log }
    */
-  function recordBlocked(hash, result, type, callbacks) {
+  function recordBlocked(hash, result, type, authorName, callbacks) {
     pendingBanners++;
     chrome.runtime.sendMessage({ type: "blocked" }).catch(() => {});
     ns.markDirty();
     blockedSet.set(hash, {
       result,
       type,
+      authorName,
       roastMessage: callbacks.getRandomRoast(type),
       bannerImage: callbacks.getRandomBannerImage(type),
     });
@@ -97,30 +99,39 @@
       }
       newCount++;
 
+      // Extract author from first line for whitelist check
+      const authorName = ns.extractAuthor(text);
+
+      // Whitelist check -- skip all detection for trusted authors
+      if (config.whitelistedAuthorsSet && ns.isWhitelistedAuthor(authorName, config.whitelistedAuthorsSet)) {
+        callbacks.log(`[LinkedIn Detox] Whitelisted author skipped: ${authorName} (hash=${hash})`);
+        return;
+      }
+
       const currentIndex = globalPostIndex++;
 
       if (config.testMode && (currentIndex === 2 || currentIndex === 4)) {
-        recordBlocked(hash, { blocked: true, score: 99, matches: ["Test mode"] }, "slop", callbacks);
+        recordBlocked(hash, { blocked: true, score: 99, matches: ["Test mode"] }, "slop", authorName, callbacks);
         callbacks.log(`[LinkedIn Detox] Test-blocked post #${currentIndex + 1} (hash=${hash})`);
         return;
       }
 
       // Promoted detection -- binary check, runs before slop analysis
       if (config.blockPromoted && isPromotedPost(text)) {
-        recordBlocked(hash, { blocked: true, score: 100, matches: ["Promoted"] }, "promoted", callbacks);
+        recordBlocked(hash, { blocked: true, score: 100, matches: ["Promoted"] }, "promoted", authorName, callbacks);
         callbacks.log(`[LinkedIn Detox] Promoted post blocked (hash=${hash})`);
         return;
       }
 
-      postsToAnalyze.push({ hash, text });
+      postsToAnalyze.push({ hash, text, authorName });
     });
 
     // Analysis loop (may be async if semantic scoring is enabled)
-    for (const { hash, text } of postsToAnalyze) {
+    for (const { hash, text, authorName } of postsToAnalyze) {
       try {
         const result = await analyzePostAsync(text, config);
         if (result.blocked) {
-          recordBlocked(hash, result, "slop", callbacks);
+          recordBlocked(hash, result, "slop", authorName, callbacks);
         }
       } catch (err) {
         console.error("[LinkedIn Detox] Analysis failed:", err);
