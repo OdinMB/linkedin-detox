@@ -305,9 +305,9 @@
             ? `${metaLabel}: Sponsored Content`
             : `${metaLabel}: ${entry.result.score}%`
               + (triggers ? ` // Triggered by: ${triggers}` : "");
-          const authorLine = entry.authorName
+          const authorLine = (!isPromoted && entry.authorName)
             ? `<div class="ld-banner__author"><span class="ld-banner__author-name">${escapeHtml(entry.authorName)}</span>`
-              + (!isPromoted ? `<button class="ld-banner__trust" data-hash="${escapeHtml(hash)}" aria-label="Trust this author" title="Trust this author">&#x2713;</button>` : "")
+              + `<button class="ld-banner__trust" data-hash="${escapeHtml(hash)}" aria-label="Trust this author" title="Trust this author">&#x2713;</button>`
               + `</div>`
             : "";
           banner.innerHTML = `

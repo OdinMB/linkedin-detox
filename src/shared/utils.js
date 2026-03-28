@@ -52,8 +52,13 @@
       .trim();
   }
 
-  // Lines LinkedIn puts before the actual author name in post innerText
-  var SKIP_LINES = /^(feed post|suggested|promoted|sponsored|reposted|following|follow)$/i;
+  // Exact-match boilerplate LinkedIn puts before the author name
+  var SKIP_EXACT = /^(feed post|suggested|promoted|sponsored|following|follow)$/i;
+
+  // Engagement context lines: "{Name} finds this funny", "reposted this", etc.
+  // These describe *another* user's interaction, not the post author.
+  // Matches engagement tails: "finds this funny", "loves this", "commented on this", etc.
+  var SKIP_ENGAGEMENT = /\b(finds this \w+|loves this|likes this|liked this|celebrated this|commented on this|reposted this|shared this|replied to this)$/i;
 
   /**
    * Extract the author name from a post's innerText.
@@ -69,7 +74,7 @@
     var limit = Math.min(lines.length, 5);
     for (var i = 0; i < limit; i++) {
       var line = normalizeText(lines[i]);
-      if (!line || SKIP_LINES.test(line)) continue;
+      if (!line || SKIP_EXACT.test(line) || SKIP_ENGAGEMENT.test(line)) continue;
       return line.length <= 120 ? line : "";
     }
     return "";

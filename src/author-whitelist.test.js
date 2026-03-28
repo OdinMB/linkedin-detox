@@ -45,7 +45,31 @@ describe("extractAuthor", () => {
   });
 
   it("returns empty string if no suitable line in first 5 lines", () => {
-    expect(extractAuthor("Feed post\nSuggested\nFollowing\nFollow\nReposted\nJane")).toBe("");
+    expect(extractAuthor("Feed post\nSuggested\nFollowing\nFollow\n\nJane")).toBe("");
+  });
+
+  it("skips 'X finds this funny' engagement line", () => {
+    expect(extractAuthor("Aljoscha Burchardt finds this funny\nJane Doe\nPost")).toBe("Jane Doe");
+  });
+
+  it("skips 'X commented on this' engagement line", () => {
+    expect(extractAuthor("Rachel Carrell commented on this\nJohn Smith\nPost")).toBe("John Smith");
+  });
+
+  it("skips 'X reposted this' engagement line", () => {
+    expect(extractAuthor("Feed post\nSomeone reposted this\nJane Doe\nPost")).toBe("Jane Doe");
+  });
+
+  it("skips 'X loves this' engagement line", () => {
+    expect(extractAuthor("Feed post\nBob Jones loves this\nJane Doe\nPost")).toBe("Jane Doe");
+  });
+
+  it("skips 'X likes this' engagement line", () => {
+    expect(extractAuthor("Jane Smith likes this\nJohn Doe\nPost")).toBe("John Doe");
+  });
+
+  it("skips 'X celebrated this' engagement line", () => {
+    expect(extractAuthor("Alex celebrated this\nJane Doe\nPost")).toBe("Jane Doe");
   });
 
   it("handles names with pronouns and credentials", () => {
