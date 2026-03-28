@@ -44,8 +44,9 @@
         }
         items.deletedBuiltinWords = new Set(items.deletedBuiltinWords || []);
         items.deletedBuiltinCoocLabels = new Set(items.deletedBuiltinCoocLabels || []);
+        var normalize = ns.normalizeText || function (s) { return s.trim(); };
         items.whitelistedAuthorsSet = new Set(
-          (items.whitelistedAuthors || []).map(function (n) { return n.toLowerCase(); })
+          (items.whitelistedAuthors || []).map(function (n) { return normalize(n).toLowerCase(); })
         );
         resolve(items);
       });

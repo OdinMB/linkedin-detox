@@ -87,8 +87,9 @@
     }
     // Whitelist change: rebuild Set and un-block matching authors (no reload needed)
     if (changes.whitelistedAuthors) {
+      const normalize = ns.normalizeText || ((s) => s.trim());
       currentConfig.whitelistedAuthorsSet = new Set(
-        (currentConfig.whitelistedAuthors || []).map((n) => n.toLowerCase())
+        (currentConfig.whitelistedAuthors || []).map((n) => normalize(n).toLowerCase())
       );
       // Un-block posts whose author now matches the whitelist
       ns.blockedSet.forEach((entry, hash) => {

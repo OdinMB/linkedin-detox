@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { extractAuthor, isWhitelistedAuthor } from "./shared/utils.js";
+import { extractAuthor, isWhitelistedAuthor, normalizeText } from "./shared/utils.js";
 
 describe("extractAuthor", () => {
   it("returns the first line of text, trimmed", () => {
@@ -34,6 +34,40 @@ describe("extractAuthor", () => {
 
   it("handles names with emoji", () => {
     expect(extractAuthor("John Smith \u{1F680}\nPost body")).toBe("John Smith \u{1F680}");
+  });
+
+  it("normalizes non-breaking spaces from LinkedIn", () => {
+    expect(extractAuthor("Jane\u00A0Doe\nPost body")).toBe("Jane Doe");
+  });
+
+  it("strips zero-width characters from LinkedIn", () => {
+    expect(extractAuthor("Jane\u200BDoe\nPost body")).toBe("JaneDoe");
+  });
+
+  it("normalizes en-dashes to hyphens", () => {
+    expect(extractAuthor("Goodwin\u2013Helgerson\nPost body")).toBe("Goodwin-Helgerson");
+  });
+});
+
+describe("normalizeText", () => {
+  it("replaces non-breaking space with regular space", () => {
+    expect(normalizeText("hello\u00A0world")).toBe("hello world");
+  });
+
+  it("removes zero-width characters", () => {
+    expect(normalizeText("hel\u200Blo")).toBe("hello");
+  });
+
+  it("normalizes various dashes to ASCII hyphen", () => {
+    expect(normalizeText("a\u2013b\u2014c")).toBe("a-b-c");
+  });
+
+  it("collapses multiple spaces", () => {
+    expect(normalizeText("a   b")).toBe("a b");
+  });
+
+  it("trims whitespace", () => {
+    expect(normalizeText("  hello  ")).toBe("hello");
   });
 });
 
@@ -76,5 +110,15 @@ describe("isWhitelistedAuthor", () => {
     const whitelist = new Set(["jane doe"]);
     expect(isWhitelistedAuthor(null, whitelist)).toBe(false);
     expect(isWhitelistedAuthor(undefined, whitelist)).toBe(false);
+  });
+
+  it("matches despite non-breaking spaces in author line", () => {
+    const whitelist = new Set(["jane doe"]);
+    expect(isWhitelistedAuthor("Jane\u00A0Doe (She/Her)", whitelist)).toBe(true);
+  });
+
+  it("matches despite en-dash vs hyphen difference", () => {
+    const whitelist = new Set(["goodwin-helgerson"]);
+    expect(isWhitelistedAuthor("Jill Goodwin\u2013Helgerson", whitelist)).toBe(true);
   });
 });

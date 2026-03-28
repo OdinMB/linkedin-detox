@@ -305,17 +305,20 @@
             ? `${metaLabel}: Sponsored Content`
             : `${metaLabel}: ${entry.result.score}%`
               + (triggers ? ` // Triggered by: ${triggers}` : "");
-          const trustButton = (!isPromoted && entry.authorName)
-            ? `<button class="ld-banner__trust" data-hash="${escapeHtml(hash)}" aria-label="Trust Author" title="Trust this author">&#x2713;</button>`
+          const authorLine = entry.authorName
+            ? `<div class="ld-banner__author"><span class="ld-banner__author-name">${escapeHtml(entry.authorName)}</span>`
+              + (!isPromoted ? `<button class="ld-banner__trust" data-hash="${escapeHtml(hash)}" aria-label="Trust this author" title="Trust this author">&#x2713;</button>` : "")
+              + `</div>`
             : "";
           banner.innerHTML = `
             <div class="ld-banner__header">
               <span class="ld-banner__title">${escapeHtml(bannerTitle)}</span>
-              <div class="ld-banner__actions">${trustButton}<button class="ld-banner__close" data-hash="${escapeHtml(hash)}" aria-label="Dismiss">&#x2715;</button></div>
+              <button class="ld-banner__close" data-hash="${escapeHtml(hash)}" aria-label="Dismiss">&#x2715;</button>
             </div>
             <div class="ld-banner__body">
               <img class="ld-banner__img" src="${escapeHtml(entry.bannerImage)}" alt="" />
               <div class="ld-banner__meta">${escapeHtml(metaLine)}</div>
+              ${authorLine}
               <div class="ld-banner__message">${escapeHtml(entry.roastMessage)}</div>
             </div>
           `;

@@ -37,6 +37,22 @@
   }
 
   /**
+   * Normalize Unicode noise that LinkedIn injects into rendered text.
+   * Collapses non-breaking spaces, zero-width chars, and normalizes
+   * various dash/hyphen characters to ASCII equivalents.
+   * @param {string} str
+   * @returns {string}
+   */
+  function normalizeText(str) {
+    return str
+      .replace(/[\u00A0\u202F\u2007\u2060]/g, " ")   // non-breaking / figure / word-joiner -> space
+      .replace(/[\u200B\u200C\u200D\uFEFF]/g, "")     // zero-width chars -> remove
+      .replace(/[\u2010\u2011\u2012\u2013\u2014\u2015]/g, "-") // various dashes -> ASCII hyphen
+      .replace(/ {2,}/g, " ")                          // collapse multiple spaces
+      .trim();
+  }
+
+  /**
    * Extract the author name from a post's innerText.
    * LinkedIn puts the author name on the first line (before the first newline).
    * Returns empty string if the first line is too long (> 120 chars, probably not a name).
@@ -44,21 +60,22 @@
    * @returns {string}
    */
   function extractAuthor(text) {
-    var firstLine = (text.split("\n")[0] || "").trim();
+    var firstLine = normalizeText((text.split("\n")[0] || ""));
     return firstLine.length <= 120 ? firstLine : "";
   }
 
   /**
    * Check if an author line matches any entry in the whitelist Set.
-   * The Set stores lowercased names. Matching is case-insensitive substring:
-   * "Jane Doe" in the Set matches "Jane Doe (She/Her)" as the author line.
+   * The Set stores lowercased, normalized names. Matching is case-insensitive
+   * substring with normalization: "Jane Doe" in the Set matches
+   * "Jane\u00a0Doe (She/Her)" as the author line.
    * @param {string|null|undefined} authorLine
    * @param {Set<string>} whitelistSet - Set of lowercased whitelisted names
    * @returns {boolean}
    */
   function isWhitelistedAuthor(authorLine, whitelistSet) {
     if (!authorLine || whitelistSet.size === 0) return false;
-    var lower = authorLine.toLowerCase();
+    var lower = normalizeText(authorLine).toLowerCase();
     for (var name of whitelistSet) {
       if (lower.includes(name)) return true;
     }
@@ -67,11 +84,12 @@
 
   ns.escapeHtml = escapeHtml;
   ns.splitSentences = splitSentences;
+  ns.normalizeText = normalizeText;
   ns.extractAuthor = extractAuthor;
   ns.isWhitelistedAuthor = isWhitelistedAuthor;
 
   // Node.js / test compatibility
   if (typeof module !== "undefined" && module.exports) {
-    module.exports = { escapeHtml, splitSentences, extractAuthor, isWhitelistedAuthor };
+    module.exports = { escapeHtml, splitSentences, normalizeText, extractAuthor, isWhitelistedAuthor };
   }
 })();
