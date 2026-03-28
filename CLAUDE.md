@@ -83,11 +83,14 @@ See README > Development > "Updating bundled assets" for full commands.
 
 ## Architecture — Detection
 
-The detection pipeline lives in `src/detector.js` with a single entry point:
+The detection pipeline lives in `src/detector.js` with two entry points:
 
 ```js
-analyzePost(text, config) -> { blocked: bool, score: number, matches: string[] }
+analyzePost(text, config) -> { blocked, score, matches }       // sync heuristics only
+analyzePostAsync(text, config) -> Promise<{ blocked, score, matches }>  // unified two-pass
 ```
+
+`scanner.js` calls `analyzePostAsync` for every post. It handles two-pass scoring internally:
 
 Three synchronous heuristic scorers, each returning `{ score: 0-100, matches: string[] }`:
 
@@ -99,9 +102,9 @@ Plus one optional async scorer:
 
 4. **`semanticScorer`** (opt-in via popup toggle) — Uses a quantized MiniLM embedding model (`Xenova/all-MiniLM-L6-v2`) running in a Web Worker to compare post sentences against ~50 canonical AI-slop phrase types via cosine similarity. Catches novel phrasings that heuristics miss.
 
-**Two-pass scoring:** The semantic scorer is expensive (embeds every sentence via an ML model), so it only runs on posts the heuristics missed:
-- **Pass 1 (sync):** Run the three heuristic scorers. If the post scores above threshold, block it immediately — no semantic scoring needed.
-- **Pass 2 (async, only uncaught posts):** If semantic scoring is enabled and Pass 1 didn't block the post, send it to the embedding model. If the semantic score exceeds threshold, block retroactively.
+**Two-pass scoring (inside `analyzePostAsync`):** The semantic scorer is expensive (embeds every sentence via an ML model), so it only runs on posts the heuristics missed:
+- **Pass 1 (sync):** Run the three heuristic scorers. If the post scores above threshold, return immediately — no semantic scoring needed.
+- **Pass 2 (async, only uncaught posts):** If `config.semanticEnabled` and `config.getSemanticScore` are provided, run the semantic scorer and merge results (max score wins). `getSemanticScore` is injected by `content.js` from `semantic-bridge.js`.
 
 This means the model is never invoked for posts that heuristics already catch, keeping the common case fast.
 

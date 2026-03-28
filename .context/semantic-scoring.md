@@ -23,9 +23,10 @@ Precomputed 384-dimensional embeddings for ~50 canonical AI-slop phrase types. G
 
 ## Data Flow
 
-1. `content.js` runs heuristic scorers synchronously (Pass 1) — blocks immediately if threshold met
-2. **Posts the heuristics already caught are done — the model is never invoked for them**
-3. For uncaught posts when `semanticEnabled`: content.js → `semantic-bridge.js` → `chrome.runtime.sendMessage` → `background.js` → offscreen document → model embeds sentences → `computeSemanticScore` against phrase bank → blocks retroactively if threshold met (Pass 2)
+1. `scanner.js` calls `analyzePostAsync(text, config)` for each post
+2. `analyzePostAsync` (in `detector.js`) runs heuristic scorers synchronously (Pass 1) — if the post is blocked, it returns immediately without invoking the semantic model
+3. For uncaught posts when `semanticEnabled` and `config.getSemanticScore` is provided: `analyzePostAsync` calls `getSemanticScore(text)` → `semantic-bridge.js` → `chrome.runtime.sendMessage` → `background.js` → offscreen document → model embeds sentences → `computeSemanticScore` against phrase bank → blocks if threshold met (Pass 2)
+4. `content.js` injects `getSemanticScore` into the config when `semanticEnabled` is true
 
 ## Bundled Assets
 

@@ -281,6 +281,10 @@ function analyzePost(text, config) {
 async function analyzePostAsync(text, config) {
   const syncResult = analyzePost(text, config);
 
+  // Two-pass optimization: skip expensive semantic scoring for posts
+  // heuristics already caught.
+  if (syncResult.blocked) return syncResult;
+
   if (!config.semanticEnabled || !config.getSemanticScore) {
     return syncResult;
   }

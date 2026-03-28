@@ -48,7 +48,13 @@
   }
 
   function scanWithDeps() {
-    ns.scanFeed(currentConfig, {
+    const scanConfig = { ...currentConfig };
+    if (scanConfig.semanticEnabled) {
+      scanConfig.getSemanticScore = typeof getSemanticScore === "function"
+        ? getSemanticScore
+        : (ns.getSemanticScore || null);
+    }
+    ns.scanFeed(scanConfig, {
       getRandomRoast: ns.getRandomRoast,
       getRandomBannerImage: ns.getRandomBannerImage,
       render: renderWithDeps,

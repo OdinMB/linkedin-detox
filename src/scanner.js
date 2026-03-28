@@ -64,43 +64,22 @@
   // --- Scanning ---
 
   /**
-   * Run semantic pass on posts that heuristics didn't catch.
-   * @param {Array} checks - [{ hash, text, syncResult }]
-   * @param {object} config
-   * @param {object} callbacks - { getRandomRoast, getRandomBannerImage, render, log }
-   */
-  async function runSemanticPass(checks, config, callbacks) {
-    const threshold = config.threshold ?? 30;
-    for (const { hash, text } of checks) {
-      if (blockedSet.has(hash)) continue;
-      try {
-        const semanticResult = await getSemanticScore(text);
-        if (semanticResult.score >= threshold) {
-          recordBlocked(hash, {
-            blocked: true,
-            score: semanticResult.score,
-            matches: semanticResult.matches,
-          }, "slop", callbacks, config);
-        }
-      } catch (err) {
-        console.error("[LinkedIn Detox] Semantic scoring failed:", err);
-      }
-    }
-    callbacks.render();
-  }
-
-  /**
    * Scan the feed for new posts and run detection.
-   * @param {object} config - currentConfig
+   * Uses analyzePostAsync for unified two-pass scoring (sync heuristics +
+   * optional async semantic). analyzePostAsync internally short-circuits
+   * semantic scoring for posts heuristics already caught.
+   *
+   * @param {object} config - currentConfig (includes getSemanticScore when semantic is enabled)
    * @param {object} callbacks - { getRandomRoast, getRandomBannerImage, render, log, isContextValid }
    */
-  function scanFeed(config, callbacks) {
+  async function scanFeed(config, callbacks) {
     if (!config.enabled || !callbacks.isContextValid()) return;
 
     const posts = document.querySelectorAll(POST_SELECTOR);
-    const pendingSemanticChecks = [];
+    const postsToAnalyze = [];
     let newCount = 0;
 
+    // DOM traversal loop (sync -- no awaits here)
     posts.forEach((post) => {
       const rect = post.getBoundingClientRect();
       if (rect.height < 10) return;
@@ -133,26 +112,26 @@
         return;
       }
 
-      const result = analyzePost(text, config);
-      if (result.blocked) {
-        recordBlocked(hash, result, "slop", callbacks, config);
-        return;
-      }
-
-      if (config.semanticEnabled) {
-        pendingSemanticChecks.push({ hash, text, syncResult: result });
-      }
+      postsToAnalyze.push({ hash, text });
     });
+
+    // Analysis loop (may be async if semantic scoring is enabled)
+    for (const { hash, text } of postsToAnalyze) {
+      try {
+        const result = await analyzePostAsync(text, config);
+        if (result.blocked) {
+          recordBlocked(hash, result, "slop", callbacks, config);
+        }
+      } catch (err) {
+        console.error("[LinkedIn Detox] Analysis failed:", err);
+      }
+    }
 
     if (newCount > 0) {
       callbacks.log(`[LinkedIn Detox] Analyzed ${newCount} new posts (total: ${globalPostIndex}, blocked: ${blockedSet.size})`);
     }
 
     callbacks.render();
-
-    if (pendingSemanticChecks.length > 0) {
-      runSemanticPass(pendingSemanticChecks, config, callbacks);
-    }
   }
 
   // --- Public API ---
@@ -165,7 +144,6 @@
   ns.hashText = hashText;
   ns.unblock = unblock;
   ns.scanFeed = scanFeed;
-  ns.runSemanticPass = runSemanticPass;
 
   // Module exports for testing (no-op in browser)
   if (typeof module !== "undefined" && module.exports) {

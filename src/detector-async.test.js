@@ -61,6 +61,29 @@ describe("analyzePostAsync", () => {
     expect(asyncResult.score).toBeGreaterThanOrEqual(syncResult.score);
   });
 
+  it("skips semantic scoring when heuristics already blocked the post", async () => {
+    let called = false;
+    const fakeGetSemanticScore = async () => {
+      called = true;
+      return { score: 50, matches: ["semantic match"] };
+    };
+
+    const config = {
+      threshold: 30,
+      semanticEnabled: true,
+      getSemanticScore: fakeGetSemanticScore,
+    };
+
+    // Text that heuristics will definitely block (high word frequency score)
+    const text = "Leverage synergy to unlock scalable disruptive impactful transformative frameworks.";
+    const syncResult = analyzePost(text, config);
+    expect(syncResult.blocked).toBe(true); // precondition
+
+    const asyncResult = await analyzePostAsync(text, config);
+    expect(called).toBe(false);
+    expect(asyncResult).toEqual(syncResult);
+  });
+
   it("does not call getSemanticScore when semanticEnabled is false", async () => {
     let called = false;
     const fakeGetSemanticScore = async () => {
