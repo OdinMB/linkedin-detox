@@ -97,29 +97,11 @@ function getRandomBannerImage(type) {
   return chrome.runtime.getURL(path);
 }
 
-function escapeHtml(str) {
-  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
-
 // --- Config (declared first — used by recordBlocked and render) ---
 
-const SENSITIVITY_THRESHOLDS = { chill: 50, suspicious: 25, unhinged: 1 };
-
-const DEFAULT_CONFIG = {
-  enabled: true,
-  mode: "roast",
-  sensitivity: "suspicious",
-  threshold: 25,
-  testMode: false,
-  semanticEnabled: false,
-  blockPromoted: false,
-  debugLogging: false,
-  theme: "light",
-  userSignalWords: [],
-  userCooccurrencePatterns: [],
-  deletedBuiltinWords: [],
-  deletedBuiltinCoocLabels: [],
-};
+const escapeHtml = LinkedInDetox.escapeHtml;
+const SENSITIVITY_THRESHOLDS = LinkedInDetox.SENSITIVITY_THRESHOLDS;
+const DEFAULT_CONFIG = LinkedInDetox.DEFAULT_CONFIG;
 
 function log(...args) {
   if (currentConfig.debugLogging) console.log(...args);
@@ -128,20 +110,9 @@ function log(...args) {
 let currentConfig = { ...DEFAULT_CONFIG };
 
 function loadConfig() {
-  return new Promise((resolve) => {
-    chrome.storage.sync.get(DEFAULT_CONFIG, (items) => {
-      items.threshold = SENSITIVITY_THRESHOLDS[items.sensitivity] || 25;
-      if (items.userSignalWords && items.userSignalWords.length > 0) {
-        items.userSignalWords = items.userSignalWords.map((w) => {
-          const escaped = w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-          return new RegExp(`\\b${escaped}(s|ed|ing|er|ly|tion|ment)?\\b`, "gi");
-        });
-      }
-      items.deletedBuiltinWords = new Set(items.deletedBuiltinWords || []);
-      items.deletedBuiltinCoocLabels = new Set(items.deletedBuiltinCoocLabels || []);
-      currentConfig = { ...items, _blocked: 0 };
-      resolve(currentConfig);
-    });
+  return LinkedInDetox.loadConfig().then((items) => {
+    currentConfig = { ...items, _blocked: 0 };
+    return currentConfig;
   });
 }
 

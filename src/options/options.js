@@ -108,9 +108,7 @@ function saveTheme() {
 
 // --- Helpers ---
 
-function escapeHtml(str) {
-  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-}
+const escapeHtml = LinkedInDetox.escapeHtml;
 
 // --- Rendering ---
 
@@ -365,26 +363,7 @@ function loadState() {
 
 // --- Embedding ---
 
-function embedPhrase(sentence) {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => {
-      reject(new Error("Embedding timed out"));
-    }, 30000);
-
-    chrome.runtime.sendMessage({ type: "embed", sentences: [sentence] }, (response) => {
-      clearTimeout(timer);
-      if (chrome.runtime.lastError) {
-        reject(new Error(chrome.runtime.lastError.message));
-        return;
-      }
-      if (!response || !response.embeddings || response.embeddings.length === 0) {
-        reject(new Error(response?.error || "No embedding returned"));
-        return;
-      }
-      resolve(response.embeddings[0]);
-    });
-  });
-}
+const embedPhrase = LinkedInDetox.embedPhrase;
 
 // --- Event Listeners ---
 

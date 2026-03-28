@@ -8,29 +8,7 @@
  * Loaded as a content script between semantic-scorer.js and content.js.
  */
 
-const _EMBED_TIMEOUT_MS = 30000;
-
-function _embedSentences(sentences) {
-  return new Promise((resolve) => {
-    const timer = setTimeout(() => {
-      console.warn("[LinkedIn Detox] Embed request timed out");
-      resolve([]);
-    }, _EMBED_TIMEOUT_MS);
-
-    chrome.runtime.sendMessage({ type: "embed", sentences }, (response) => {
-      clearTimeout(timer);
-      if (chrome.runtime.lastError) {
-        console.warn("[LinkedIn Detox] Message error:", chrome.runtime.lastError.message);
-        resolve([]);
-        return;
-      }
-      if (response && response.error) {
-        console.warn("[LinkedIn Detox] Worker error:", response.error);
-      }
-      resolve(response ? response.embeddings || [] : []);
-    });
-  });
-}
+const _embedSentences = LinkedInDetox.embedSentences;
 
 let _phraseBank = null;
 
@@ -74,7 +52,7 @@ async function _loadPhraseBank() {
 }
 
 function _splitIntoSentences(text) {
-  return text.split(/[.!?\n]+/).filter((s) => s.trim().length > 10);
+  return LinkedInDetox.splitSentences(text, { minLength: 10 });
 }
 
 /**

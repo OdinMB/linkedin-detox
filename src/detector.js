@@ -12,9 +12,9 @@
 const EM_DASH_RE = /\u2014|---|--/g;
 const ELLIPSIS_RE = /\.{3,}/g;
 
-function splitSentences(text) {
-  return text.split(/[.!?]+/).filter((s) => s.trim().length > 0);
-}
+const splitSentences = (typeof LinkedInDetox !== "undefined" && LinkedInDetox.splitSentences)
+  ? LinkedInDetox.splitSentences
+  : function (text) { return text.split(/[.!?\n]+/).filter((s) => s.trim().length > 0); };
 
 /**
  * Scores em dash and ellipsis density.

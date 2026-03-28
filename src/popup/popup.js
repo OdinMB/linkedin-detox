@@ -5,7 +5,7 @@
  * Pattern configs and debug settings live on the options page.
  */
 
-const SENSITIVITY_THRESHOLDS = { chill: 50, suspicious: 25, unhinged: 1 };
+const SENSITIVITY_THRESHOLDS = LinkedInDetox.SENSITIVITY_THRESHOLDS;
 const SENSITIVITY_DESCS = {
   chill: "Only the most blatant slop gets flagged (score > 50). You're feeling generous.",
   suspicious: "Catches most AI-generated slop (score > 25). The sweet spot.",

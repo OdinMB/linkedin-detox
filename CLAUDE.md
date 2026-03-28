@@ -26,6 +26,10 @@ Chrome extension that detects AI-generated slop on LinkedIn and either hides it 
 │   │   └── Xenova/all-MiniLM-L6-v2/  # Quantized MiniLM for semantic scoring
 │   ├── lib/                    # Vendored libraries (checked in)
 │   │   └── transformers.min.js # @xenova/transformers CJS bundle (~877KB)
+│   ├── shared/
+│   │   ├── config.js       # DEFAULT_CONFIG, SENSITIVITY_THRESHOLDS, loadConfig()
+│   │   ├── utils.js        # escapeHtml(), splitSentences()
+│   │   └── embed.js        # embedSentences(), embedPhrase()
 │   ├── content.js          # Content script — feed observer + DOM manipulation
 │   ├── content.css         # Injected styles for banners and hidden posts
 │   ├── popup/
@@ -128,3 +132,5 @@ The embedding model needs full browser APIs (WebAssembly, Workers, Atomics) that
 - Session stats in `chrome.storage.local` (doesn't sync)
 - Detector interface is stable: always return `{ blocked, score, matches }`
 - Tests use vitest (`npm test`) — detector.js exports via conditional `module.exports` for testing
+- Shared code lives in `src/shared/` using the `window.LinkedInDetox` global namespace pattern (IIFE + `window.LinkedInDetox = window.LinkedInDetox || {}`). Each shared file also has a `module.exports` guard for test compatibility. New shared utilities should follow this pattern.
+- When code is needed by multiple contexts (content script, popup, options), extract it to `src/shared/` rather than duplicating it
