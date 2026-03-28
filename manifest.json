@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "LinkedIn Detox",
-  "version": "0.2.0",
-  "description": "Hide AI-generated slop from your LinkedIn feed. Replace it with something honest.",
+  "version": "0.3.0",
+  "description": "Hide AI slop and block promoted posts on LinkedIn. Replace them with something honest.",
   "permissions": ["storage", "offscreen"],
   "host_permissions": ["https://www.linkedin.com/*", "https://linkedin.com/*"],
   "options_ui": {
