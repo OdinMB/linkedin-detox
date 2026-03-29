@@ -5,7 +5,7 @@
  * Pattern configs and debug settings live on the options page.
  */
 
-const SENSITIVITY_THRESHOLDS = LinkedInDetox.SENSITIVITY_THRESHOLDS;
+const SENSITIVITY_THRESHOLDS = _ld.SENSITIVITY_THRESHOLDS;
 const SENSITIVITY_DESCS = {
   chill: "Only the most blatant slop gets flagged (score > 50). You're feeling generous.",
   suspicious: "Catches most AI-generated slop (score > 25). The sweet spot.",
@@ -77,10 +77,21 @@ function loadState() {
     }
   );
 
-  chrome.storage.local.get({ blockedCount: 0 }, (items) => {
+  chrome.storage.local.get({ blockedCount: 0, semanticModelError: null }, (items) => {
     const count = items.blockedCount || 0;
     els.blockedBadge.textContent = count;
     els.blockedBadge.classList.toggle("zero", count === 0);
+
+    // Show semantic model error if present
+    const errorEl = document.getElementById("semantic-error");
+    if (items.semanticModelError && els.semantic.checked) {
+      if (errorEl) {
+        errorEl.textContent = "Model failed to load — semantic detection inactive";
+        errorEl.style.display = "";
+      }
+    } else if (errorEl) {
+      errorEl.style.display = "none";
+    }
   });
 }
 
