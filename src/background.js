@@ -50,14 +50,40 @@ chrome.storage.onChanged.addListener((changes, area) => {
 chrome.storage.local.set({ blockedCount: 0 });
 updateBadge();
 
+// --- Blocked count debounce ---
+
+let pendingBlockedIncrements = 0;
+let blockedFlushTimer = null;
+
+function flushBlockedCount() {
+  blockedFlushTimer = null;
+  const increment = pendingBlockedIncrements;
+  pendingBlockedIncrements = 0;
+  if (increment <= 0) return;
+  chrome.storage.local.get({ blockedCount: 0 }, (items) => {
+    const newCount = (items.blockedCount || 0) + increment;
+    chrome.storage.local.set({ blockedCount: newCount });
+  });
+}
+
 // --- Message relay ---
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === "modelError") {
+    chrome.storage.local.set({ semanticModelError: message.error || "Model failed to load" });
+    return;
+  }
+
+  if (message.type === "modelLoaded") {
+    chrome.storage.local.remove("semanticModelError");
+    return;
+  }
+
   if (message.type === "blocked") {
-    chrome.storage.local.get({ blockedCount: 0 }, (items) => {
-      const newCount = (items.blockedCount || 0) + 1;
-      chrome.storage.local.set({ blockedCount: newCount });
-    });
+    pendingBlockedIncrements++;
+    if (!blockedFlushTimer) {
+      blockedFlushTimer = setTimeout(flushBlockedCount, 500);
+    }
     return;
   }
 

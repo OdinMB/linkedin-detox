@@ -34,9 +34,15 @@ async function initModel() {
       { quantized: true }
     );
     console.log("[LinkedIn Detox Offscreen] Model loaded");
+    chrome.runtime.sendMessage({ type: "modelLoaded" }).catch(() => {});
   } catch (err) {
     console.error("[LinkedIn Detox Offscreen] Model load failed:", err);
     pipelineInstance = null;
+    // Surface error to popup via background relay
+    chrome.runtime.sendMessage({
+      type: "modelError",
+      error: err.message || "Unknown model load error",
+    }).catch(() => {});
   }
 }
 
