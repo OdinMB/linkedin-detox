@@ -3,12 +3,12 @@
  *
  * Feed scanning and detection pipeline orchestration.
  * Owns blockedSet, analyzedHashes, dismissedPosts, and globalPostIndex.
- * Exports via window.LinkedInDetox namespace.
+ * Exports via window._ld namespace.
  */
 
 (function () {
   const _global = typeof window !== "undefined" ? window : {};
-  const ns = (_global.LinkedInDetox = _global.LinkedInDetox || {});
+  const ns = (_global._ld = _global._ld || {});
 
   // --- Selectors ---
 
@@ -19,10 +19,12 @@
 
   const blockedSet = new Map();
   const analyzedHashes = new Set();
-  const dismissedPosts = new WeakSet();
+  const dismissedHashes = new Set();
+  const dismissedElements = new WeakSet();
   const ANALYZED_HASHES_MAX = 2000;
-  let globalPostIndex = 0;
+  let totalPostsAnalyzed = 0;
   let pendingBanners = 0;
+  let selectorWarned = false;
 
   // --- Helpers ---
 
@@ -86,10 +88,14 @@
       const rect = post.getBoundingClientRect();
       if (rect.height < 10) return;
 
-      if (dismissedPosts.has(post)) return;
+      // Element-based dismiss check: catches text changes within same element
+      if (dismissedElements.has(post)) return;
+
       const text = post.innerText?.trim() || "";
       if (!text) return;
       const hash = hashText(text);
+      // Hash-based dismiss check: catches element recreation after virtualization
+      if (dismissedHashes.has(hash)) return;
       if (analyzedHashes.has(hash)) return;
       analyzedHashes.add(hash);
       // Evict oldest entries when set grows too large (long sessions)
@@ -108,8 +114,8 @@
         return;
       }
 
-      const currentIndex = globalPostIndex++;
-
+      // Test mode: block the 3rd and 5th non-whitelisted posts in this scan batch
+      const currentIndex = newCount - 1;
       if (config.testMode && (currentIndex === 2 || currentIndex === 4)) {
         recordBlocked(hash, { blocked: true, score: 99, matches: ["Test mode"] }, "slop", authorName, callbacks);
         callbacks.log(`[LinkedIn Detox] Test-blocked post #${currentIndex + 1} (hash=${hash})`);
@@ -123,10 +129,24 @@
         return;
       }
 
-      postsToAnalyze.push({ hash, text, authorName });
+      // Sync heuristic pass: block immediately if heuristics catch it.
+      // This avoids the async loop delay for the common case.
+      const syncResult = analyzePost(text, config);
+      if (syncResult.blocked) {
+        recordBlocked(hash, syncResult, "slop", authorName, callbacks);
+      } else if (config.semanticEnabled && config.getSemanticScore) {
+        // Heuristics missed it — queue for async semantic pass
+        postsToAnalyze.push({ hash, text, authorName });
+      }
     });
 
-    // Analysis loop (may be async if semantic scoring is enabled)
+    // Render immediately after sync blocking so banners appear without
+    // waiting for the async semantic loop below.
+    if (postsToAnalyze.length > 0) {
+      callbacks.render();
+    }
+
+    // Async semantic pass: only runs for posts heuristics didn't catch
     for (const { hash, text, authorName } of postsToAnalyze) {
       try {
         const result = await analyzePostAsync(text, config);
@@ -138,8 +158,18 @@
       }
     }
 
+    totalPostsAnalyzed += newCount;
     if (newCount > 0) {
-      callbacks.log(`[LinkedIn Detox] Analyzed ${newCount} new posts (total: ${globalPostIndex}, blocked: ${blockedSet.size})`);
+      callbacks.log(`[LinkedIn Detox] Analyzed ${newCount} new posts (total: ${totalPostsAnalyzed}, blocked: ${blockedSet.size})`);
+    }
+
+    // Stale selector sentinel: warn once if the feed container exists but
+    // the post selector matched nothing (suggests LinkedIn changed their DOM).
+    // Skip the warning on non-feed pages (profile, messaging, etc.).
+    if (posts.length === 0 && totalPostsAnalyzed === 0 && !selectorWarned
+        && document.querySelector?.(FEED_SELECTOR)) {
+      selectorWarned = true;
+      console.warn("[LinkedIn Detox] POST_SELECTOR matched zero elements — LinkedIn may have changed their DOM. Selectors may need updating.");
     }
 
     callbacks.render();
@@ -151,7 +181,8 @@
   ns.POST_SELECTOR = POST_SELECTOR;
   ns.blockedSet = blockedSet;
   ns.analyzedHashes = analyzedHashes;
-  ns.dismissedPosts = dismissedPosts;
+  ns.dismissedHashes = dismissedHashes;
+  ns.dismissedElements = dismissedElements;
   ns.hashText = hashText;
   ns.unblock = unblock;
   ns.scanFeed = scanFeed;
@@ -171,9 +202,10 @@
       scanFeed,
       blockedSet,
       analyzedHashes,
+      dismissedHashes,
       ANALYZED_HASHES_MAX,
-      _getState: function () { return { pendingBanners, globalPostIndex }; },
-      _resetState: function () { pendingBanners = 0; globalPostIndex = 0; analyzedHashes.clear(); blockedSet.clear(); },
+      _getState: function () { return { pendingBanners, totalPostsAnalyzed }; },
+      _resetState: function () { pendingBanners = 0; totalPostsAnalyzed = 0; analyzedHashes.clear(); blockedSet.clear(); dismissedHashes.clear(); },
     };
   }
 })();

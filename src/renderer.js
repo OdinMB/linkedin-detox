@@ -4,12 +4,12 @@
  * Banner/overlay rendering and all DOM manipulation for banners.
  * Owns liveBanners, bannersDirty, overlayEl, nav caching state,
  * and all banner content arrays.
- * Exports via window.LinkedInDetox namespace.
+ * Exports via window._ld namespace.
  */
 
 (function () {
   const _global = typeof window !== "undefined" ? window : {};
-  const ns = (_global.LinkedInDetox = _global.LinkedInDetox || {});
+  const ns = (_global._ld = _global._ld || {});
 
   const escapeHtml = (typeof ns.escapeHtml === "function")
     ? ns.escapeHtml
@@ -90,16 +90,36 @@
     "icons/banners/promoted/wallet-trap.png",
   ];
 
-  // --- Random content selectors ---
+  // --- Shuffle-draw content selectors (avoids consecutive repeats) ---
+
+  function createShuffleDraw(source) {
+    let deck = [];
+    return function () {
+      if (deck.length === 0) {
+        deck = source.slice();
+        // Fisher-Yates shuffle
+        for (let i = deck.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          const tmp = deck[i];
+          deck[i] = deck[j];
+          deck[j] = tmp;
+        }
+      }
+      return deck.pop();
+    };
+  }
+
+  const drawRoast = createShuffleDraw(ROAST_MESSAGES);
+  const drawPromotedRoast = createShuffleDraw(PROMOTED_ROAST_MESSAGES);
+  const drawBannerImage = createShuffleDraw(BANNER_IMAGES);
+  const drawPromotedBannerImage = createShuffleDraw(PROMOTED_BANNER_IMAGES);
 
   function getRandomRoast(type) {
-    const pool = type === "promoted" ? PROMOTED_ROAST_MESSAGES : ROAST_MESSAGES;
-    return pool[Math.floor(Math.random() * pool.length)];
+    return type === "promoted" ? drawPromotedRoast() : drawRoast();
   }
 
   function getRandomBannerImage(type) {
-    const pool = type === "promoted" ? PROMOTED_BANNER_IMAGES : BANNER_IMAGES;
-    const path = pool[Math.floor(Math.random() * pool.length)];
+    const path = type === "promoted" ? drawPromotedBannerImage() : drawBannerImage();
     return chrome.runtime.getURL(path);
   }
 
@@ -121,6 +141,8 @@
     liveBanners.clear();
     overlayEl = document.createElement("div");
     overlayEl.id = "ld-overlay";
+    overlayEl.setAttribute("role", "status");
+    overlayEl.setAttribute("aria-live", "polite");
     overlayEl.addEventListener("mousedown", (e) => {
       // Handle "Trust Author" button
       const trustBtn = e.target.closest(".ld-banner__trust");
@@ -156,7 +178,8 @@
         ns.unblock(hash);
         const state = liveBanners.get(hash);
         if (state) {
-          if (state.postRef) deps.dismissedPosts.add(state.postRef);
+          if (hash) deps.dismissedHashes.add(hash);
+          if (state.postRef) deps.dismissedElements.add(state.postRef);
           state.banner.remove();
           liveBanners.delete(hash);
         }
@@ -209,7 +232,6 @@
    */
   function render(config, deps) {
     if (!deps.isContextValid()) return;
-    const overlay = getOverlay(deps);
     const navBottom = findNavBottom();
 
     if (!config.enabled) {
@@ -221,6 +243,13 @@
     const mode = config.mode || "roast";
     const isDark = config.theme === "dark";
     const activeHashes = new Set();
+
+    // Both modes use overlay banners. Hide mode covers posts with a plain
+    // background (no content); roast mode shows caution-tape banners.
+    // We avoid modifying LinkedIn's DOM (no data-ld-hidden) to prevent
+    // layout reflows and flickering from their virtual scroller.
+
+    const overlay = getOverlay(deps);
 
     // --- Read phase: collect all layout reads before any writes ---
     let detectStale = false;
@@ -283,19 +312,23 @@
         // Create new banner
         const isPromoted = entry.type === "promoted";
         const banner = document.createElement("div");
-        banner.className = "ld-banner"
-          + (isDark ? " ld-banner--dark" : "")
-          + (isPromoted ? " ld-banner--promoted" : "");
         banner.style.transform = `translate(${rect.left}px, ${rect.top}px)`;
         banner.style.width = `${rect.width}px`;
         banner.style.height = `${rect.height}px`;
 
         if (mode === "hide") {
-          banner.style.background = isPromoted
-            ? (isDark ? "#0d1b2a" : "#e8f0fe")
-            : (isDark ? "#1a1a1a" : "#f3f2f0");
-          banner.style.border = "none";
+          // Hide mode: plain overlay matching LinkedIn's background — no classes,
+          // no caution tape, no content. Just an invisible cover.
+          banner.style.position = "fixed";
+          banner.style.top = "0";
+          banner.style.left = "0";
+          banner.style.pointerEvents = "none";
+          banner.style.background = isDark ? "#1b1f23" : "#f4f2ee";
         } else {
+          banner.className = "ld-banner"
+            + (isDark ? " ld-banner--dark" : "")
+            + (isPromoted ? " ld-banner--promoted" : "");
+          banner.setAttribute("aria-label", isPromoted ? "Promoted post blocked" : "AI-generated post blocked");
           const bannerTitle = isPromoted ? "Ad Blocked" : "Quarantined";
           const triggers = entry.result.matches.length > 0
             ? entry.result.matches.join(", ")

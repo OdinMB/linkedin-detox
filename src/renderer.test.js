@@ -3,21 +3,21 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // The test-setup-globals.js runs before this file, establishing:
 // - globalThis.window = globalThis
 // - globalThis.chrome (basic stubs)
-// - globalThis.LinkedInDetox namespace
+// - globalThis._ld namespace
 // - globalThis.performance
 
 // Override chrome.runtime.getURL with a vi.fn for assertions
 globalThis.chrome.runtime.getURL = vi.fn((path) => `chrome-extension://fakeid/${path}`);
 
 // Set escapeHtml on the namespace (normally loaded from utils.js before renderer.js)
-globalThis.LinkedInDetox.escapeHtml = (str) =>
+globalThis._ld.escapeHtml = (str) =>
   str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 // Set cross-module functions renderer.js uses from scanner.js
-globalThis.LinkedInDetox.unblock = vi.fn();
-globalThis.LinkedInDetox.POST_SELECTOR = "div.fake-selector";
-globalThis.LinkedInDetox.hasPendingBanners = () => false;
-globalThis.LinkedInDetox.decrementPendingBanners = vi.fn();
+globalThis._ld.unblock = vi.fn();
+globalThis._ld.POST_SELECTOR = "div.fake-selector";
+globalThis._ld.hasPendingBanners = () => false;
+globalThis._ld.decrementPendingBanners = vi.fn();
 
 // DOM stubs for renderer.js IIFE
 if (!globalThis.document) {

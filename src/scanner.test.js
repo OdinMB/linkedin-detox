@@ -3,14 +3,14 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 // The test-setup-globals.js runs before this file, establishing:
 // - globalThis.window = globalThis
 // - globalThis.chrome (basic stubs)
-// - globalThis.LinkedInDetox namespace
+// - globalThis._ld namespace
 //
 // scanner.js IIFE sees `typeof window !== "undefined"` and uses the shared namespace.
 
 // Override chrome.runtime.sendMessage with a vi.fn so we can assert on it
 globalThis.chrome.runtime.sendMessage = vi.fn(() => Promise.resolve());
 
-// Import scanner.js — the IIFE runs and populates ns (= globalThis.LinkedInDetox)
+// Import scanner.js — the IIFE runs and populates ns (= globalThis._ld)
 import {
   hashText,
   recordBlocked,
@@ -25,7 +25,7 @@ import {
 
 // After import, set cross-module functions on the shared namespace.
 // In the browser, these come from utils.js and renderer.js loaded before scanner.js.
-const ns = globalThis.LinkedInDetox;
+const ns = globalThis._ld;
 ns.markDirty = vi.fn();
 ns.extractAuthor = (text) => {
   const firstLine = (text.split("\n")[0] || "").trim();
@@ -44,6 +44,11 @@ ns.decrementPendingBanners = vi.fn();
 
 // Mock global functions from detector.js used by scanFeed
 globalThis.isPromotedPost = vi.fn(() => false);
+globalThis.analyzePost = vi.fn(() => ({
+  blocked: false,
+  score: 0,
+  matches: [],
+}));
 globalThis.analyzePostAsync = vi.fn(async () => ({
   blocked: false,
   score: 0,
@@ -246,6 +251,11 @@ describe("scanFeed", () => {
     vi.clearAllMocks();
     ns.markDirty = vi.fn();
     globalThis.isPromotedPost = vi.fn(() => false);
+    globalThis.analyzePost = vi.fn(() => ({
+      blocked: false,
+      score: 0,
+      matches: [],
+    }));
     globalThis.analyzePostAsync = vi.fn(async () => ({
       blocked: false,
       score: 0,
@@ -437,7 +447,7 @@ describe("scanFeed", () => {
     expect(testBlocked.length).toBe(2);
   });
 
-  it("runs analyzePostAsync for non-promoted, non-test posts", async () => {
+  it("runs analyzePost synchronously for non-promoted, non-test posts", async () => {
     const text = "Author Name\nJust a normal post about my day at work.";
 
     const mockPost = {
@@ -446,7 +456,7 @@ describe("scanFeed", () => {
     };
 
     document.querySelectorAll = vi.fn(() => [mockPost]);
-    globalThis.analyzePostAsync = vi.fn(async () => ({
+    globalThis.analyzePost = vi.fn(() => ({
       blocked: false,
       score: 15,
       matches: [],
@@ -462,11 +472,13 @@ describe("scanFeed", () => {
 
     await scanFeed({ enabled: true, threshold: 30 }, callbacks);
 
-    expect(globalThis.analyzePostAsync).toHaveBeenCalled();
+    expect(globalThis.analyzePost).toHaveBeenCalled();
+    // analyzePostAsync only runs when semantic is enabled
+    expect(globalThis.analyzePostAsync).not.toHaveBeenCalled();
     expect(blockedSet.size).toBe(0);
   });
 
-  it("blocks post when analyzePostAsync returns blocked", async () => {
+  it("blocks post synchronously when analyzePost returns blocked", async () => {
     const text = "Author\nLeverage synergy to unlock scalable disruptive frameworks";
 
     const mockPost = {
@@ -475,7 +487,7 @@ describe("scanFeed", () => {
     };
 
     document.querySelectorAll = vi.fn(() => [mockPost]);
-    globalThis.analyzePostAsync = vi.fn(async () => ({
+    globalThis.analyzePost = vi.fn(() => ({
       blocked: true,
       score: 85,
       matches: ["leverage", "synergy"],
@@ -497,6 +509,47 @@ describe("scanFeed", () => {
     expect(entry.result.score).toBe(85);
   });
 
+  it("falls through to analyzePostAsync when semantic is enabled and sync misses", async () => {
+    const text = "Author\nSubtle rephrased slop that heuristics miss";
+
+    const mockPost = {
+      getBoundingClientRect: () => ({ height: 100, width: 500 }),
+      innerText: text,
+    };
+
+    document.querySelectorAll = vi.fn(() => [mockPost]);
+    globalThis.analyzePost = vi.fn(() => ({
+      blocked: false,
+      score: 10,
+      matches: [],
+    }));
+    const mockGetSemanticScore = vi.fn(async () => ({ score: 70, matches: ["semantic match"] }));
+    globalThis.analyzePostAsync = vi.fn(async () => ({
+      blocked: true,
+      score: 70,
+      matches: ["semantic match"],
+    }));
+
+    const callbacks = {
+      isContextValid: vi.fn(() => true),
+      render: vi.fn(),
+      log: vi.fn(),
+      getRandomRoast: vi.fn(() => "roast"),
+      getRandomBannerImage: vi.fn(() => "img.png"),
+    };
+
+    await scanFeed({
+      enabled: true,
+      threshold: 30,
+      semanticEnabled: true,
+      getSemanticScore: mockGetSemanticScore,
+    }, callbacks);
+
+    expect(globalThis.analyzePost).toHaveBeenCalled();
+    expect(globalThis.analyzePostAsync).toHaveBeenCalled();
+    expect(blockedSet.size).toBe(1);
+  });
+
   it("handles analyzePostAsync errors gracefully", async () => {
     const text = "Author\nSome post that causes analysis error";
 
@@ -506,6 +559,11 @@ describe("scanFeed", () => {
     };
 
     document.querySelectorAll = vi.fn(() => [mockPost]);
+    globalThis.analyzePost = vi.fn(() => ({
+      blocked: false,
+      score: 5,
+      matches: [],
+    }));
     globalThis.analyzePostAsync = vi.fn(async () => {
       throw new Error("Analysis failed");
     });
@@ -518,8 +576,13 @@ describe("scanFeed", () => {
       getRandomBannerImage: vi.fn(() => "img.png"),
     };
 
-    // Should not throw
-    await scanFeed({ enabled: true, threshold: 30 }, callbacks);
+    // Should not throw — needs semantic enabled to hit the async path
+    await scanFeed({
+      enabled: true,
+      threshold: 30,
+      semanticEnabled: true,
+      getSemanticScore: vi.fn(),
+    }, callbacks);
 
     expect(blockedSet.size).toBe(0);
     expect(callbacks.render).toHaveBeenCalled();
