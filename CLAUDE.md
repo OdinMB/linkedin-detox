@@ -42,7 +42,9 @@ Chrome extension that detects AI-generated slop on LinkedIn and either hides it 
 │       └── options.js      # Options logic — pattern management, phrase embedding
 ├── scripts/
 │   ├── build-embeddings.js # Node script to regenerate phrase-embeddings.json
-│   └── build-zip.js        # Node script to build Chrome Web Store zip
+│   └── build-zip.js        # Pure Node.js zip builder (no shell dependencies)
+├── .eslintrc.json          # ESLint config (browser env, basic rules)
+├── vitest.config.js        # Vitest config with coverage settings
 ├── .context/               # Architecture docs
 ├── .plans/                 # Task plans
 │   └── completed/
@@ -126,18 +128,39 @@ The embedding model needs full browser APIs (WebAssembly, Workers, Atomics) that
 
 **Setup:** See "Semantic scoring setup" in the Development section above.
 
+## Detection Posture
+
+LinkedIn's ToS (Section 8.2) prohibits browser extensions that modify the service. We accept that risk. No adversarial evasion tactics — no fingerprint minimization, no detection-script blocking, no arms race. See `.context/linkedin-tos-risks.md` for the full ToS analysis.
+
+## DOM Unobtrusiveness
+
+We try to be as unobtrusive to LinkedIn's DOM and code as possible — avoid removing/replacing their nodes, avoid polluting their JS context, prefer CSS-only hiding. This is good engineering practice that happens to reduce footprint as a side effect.
+
 ## Context Files
 
 - **[Semantic Scoring](.context/semantic-scoring.md)** — The semantic scorer uses a two-pass async architecture; changes to scoring, worker protocol, or phrase bank must respect this flow. Details on components, data flow, and key decisions.
 - **[LinkedIn DOM Challenges](.context/linkedin-dom-challenges.md)** — LinkedIn virtualizes its feed; the extension uses text hashing instead of element refs. Details on the overlay approach.
 - **[Permissions](.context/permissions.md)** — Why each manifest permission exists, what uses it, and what was removed.
 
+## Quality Checks
+
+Before committing, run:
+
+- **`npm test`** — vitest unit tests (169 tests across 6 files)
+- **`npm run lint`** — ESLint with browser env, `no-unused-vars`, `no-undef`, `eqeqeq`
+- **`npm run test:coverage`** — vitest with lcov coverage report (requires `@vitest/coverage-v8`)
+- **`npm run build:zip`** — verify the Chrome Web Store zip builds cleanly
+
 ## Conventions
 
 - No build tools — keep it loadable directly as an unpacked extension
 - All state in `chrome.storage.sync` (syncs across devices)
-- Session stats in `chrome.storage.local` (doesn't sync)
+- Session stats and large data in `chrome.storage.local` (doesn't sync, higher quota). Sync has 8KB per-item and 100KB total limits.
 - Detector interface is stable: always return `{ blocked, score, matches }`
+- Scoring constants are named (e.g., `EM_DASH_SCORE_MULTIPLIER`, `COSINE_LOW_THRESHOLD`) — don't use inline magic numbers in scoring formulas
 - Tests use vitest (`npm test`) — detector.js exports via conditional `module.exports` for testing
-- Shared code lives in `src/shared/` using the `window.LinkedInDetox` global namespace pattern (IIFE + `window.LinkedInDetox = window.LinkedInDetox || {}`). Each shared file also has a `module.exports` guard for test compatibility. New shared utilities should follow this pattern.
+- Shared code lives in `src/shared/` using the `window._ld` namespace pattern (IIFE + `window._ld = window._ld || {}`). Each shared file also has a `module.exports` guard for test compatibility. New shared utilities should follow this pattern.
 - When code is needed by multiple contexts (content script, popup, options), extract it to `src/shared/` rather than duplicating it
+- Content script load order in manifest is a hard dependency: `config.js` → `utils.js` → `embed.js` → `detector.js` → `semantic-scorer.js` → `semantic-bridge.js` → `scanner.js` → `renderer.js` → `content.js`. Earlier scripts define globals that later scripts consume.
+- Options page renders lists using DOM construction APIs (`createElement`/`textContent`), not `innerHTML` with string interpolation — this eliminates XSS surface
+- Error logging uses `[LinkedIn Detox]` prefix (or `[LinkedIn Detox Offscreen]` for offscreen document) consistently across all files

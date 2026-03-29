@@ -9,13 +9,13 @@ Optional fourth scorer that uses a local embedding model to detect AI-slop phras
 ### semantic-scorer.js
 Pure scoring logic (no browser APIs). Exports:
 - `cosineSimilarity(a, b)` — vector math
-- `scoreFromSimilarity(similarity)` — converts cosine similarity to 0-100 score (>=0.75 → 80+, >=0.60 → 50+, <0.60 → 0)
+- `scoreFromSimilarity(similarity)` — converts cosine similarity to 0-100 score using named threshold constants (`COSINE_LOW_THRESHOLD=0.60`, `COSINE_HIGH_THRESHOLD=0.75`) with linear interpolation between anchor scores (`SCORE_AT_LOW=50`, `SCORE_AT_HIGH=80`, `SCORE_AT_MAX=100`)
 - `computeSemanticScore(sentenceEmbeddings, phraseBank)` — returns `{ score, matches }` matching the heuristic scorer interface
 
 ### background.js + offscreen.js
 The embedding model needs full browser APIs (WebAssembly, Workers, Atomics) that MV3 service workers lack. Architecture:
 - `background.js` — thin relay service worker, creates offscreen document on first embed request
-- `offscreen.js` — loads `@xenova/transformers` with `Xenova/all-MiniLM-L6-v2` (quantized int8, bundled in `src/models/`), lazy-initializes on first message. Remote model fetching is disabled (`env.allowRemoteModels = false`).
+- `offscreen.js` — loads `@xenova/transformers` with `Xenova/all-MiniLM-L6-v2` (quantized int8, bundled in `src/models/`), lazy-initializes on first message. Remote model fetching is disabled (`env.allowRemoteModels = false`). On load failure, sends a `modelError` message to background.js which sets `semanticModelError` in `chrome.storage.local`; on success, sends `modelLoaded` which clears it. The popup reads this flag to show a visual error indicator.
 - `semantic-bridge.js` — content script helper that sends embed requests via `chrome.runtime.sendMessage`
 
 ### phrase-embeddings.json

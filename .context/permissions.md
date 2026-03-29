@@ -5,7 +5,7 @@
 ### `storage`
 **Why:** Persists user preferences (enabled state, sensitivity threshold, display mode, custom signal words, custom co-occurrence patterns) via `chrome.storage.sync` so settings survive browser restarts and sync across signed-in Chrome instances. Session statistics (posts scanned/blocked) use `chrome.storage.local`.
 
-**Used by:** `src/content.js`, `src/popup/popup.js`, `src/options/options.js`
+**Used by:** `src/content.js`, `src/popup/popup.js`, `src/options/options.js`, `src/background.js` (badge count, model error flag)
 
 ### `offscreen`
 **Why:** The semantic scorer needs WebAssembly, Web Workers, and SharedArrayBuffer to run the MiniLM embedding model. MV3 service workers lack these APIs. The offscreen document (`src/offscreen.html` + `src/offscreen.js`) provides a full browser context where `transformers.js` can load the ONNX runtime and run inference.

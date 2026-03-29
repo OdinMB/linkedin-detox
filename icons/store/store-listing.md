@@ -36,6 +36,8 @@ Privacy first:
 
 Works out of the box with zero configuration. Just install and scroll.
 
+Heads up: LinkedIn's User Agreement (Section 8.2) prohibits browser extensions that modify the service's appearance or obscure advertisements. This extension does both. The practical risk is account restriction or suspension — the same risk profile as any ad blocker on LinkedIn. Use at your own discretion.
+
 ## Store Assets
 
 | Asset                         | File                                   | Dimensions |
