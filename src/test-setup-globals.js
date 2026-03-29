@@ -21,7 +21,7 @@ globalThis.chrome = {
 };
 
 // Shared namespace
-globalThis.LinkedInDetox = globalThis.LinkedInDetox || {};
+globalThis._ld = globalThis._ld || {};
 
 // performance.now stub
 if (typeof performance === "undefined") {

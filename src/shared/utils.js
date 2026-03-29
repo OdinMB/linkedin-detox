@@ -2,12 +2,12 @@
  * LinkedIn Detox — Shared Utilities
  *
  * Exports escapeHtml(), splitSentences(), extractAuthor(), and isWhitelistedAuthor()
- * via the window.LinkedInDetox namespace.
+ * via the window._ld namespace.
  */
 
 (function () {
   var _global = typeof window !== "undefined" ? window : {};
-  var ns = (_global.LinkedInDetox = _global.LinkedInDetox || {});
+  var ns = (_global._ld = _global._ld || {});
 
   /**
    * Escape HTML special characters to prevent XSS in innerHTML assignments.

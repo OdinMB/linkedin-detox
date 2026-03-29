@@ -2,11 +2,11 @@
  * LinkedIn Detox — Shared Config
  *
  * Exports DEFAULT_CONFIG, SENSITIVITY_THRESHOLDS, and loadConfig()
- * via the window.LinkedInDetox namespace.
+ * via the window._ld namespace.
  */
 
 (function () {
-  const ns = (window.LinkedInDetox = window.LinkedInDetox || {});
+  const ns = (window._ld = window._ld || {});
 
   const SENSITIVITY_THRESHOLDS = { chill: 50, suspicious: 25, unhinged: 1 };
 

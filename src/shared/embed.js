@@ -1,12 +1,12 @@
 /**
  * LinkedIn Detox — Shared Embed Adapter
  *
- * Exports embedSentences() and embedPhrase() via the window.LinkedInDetox namespace.
+ * Exports embedSentences() and embedPhrase() via the window._ld namespace.
  * Wraps chrome.runtime.sendMessage({ type: "embed" }) with timeout handling.
  */
 
 (function () {
-  var ns = (window.LinkedInDetox = window.LinkedInDetox || {});
+  var ns = (window._ld = window._ld || {});
 
   var EMBED_TIMEOUT_MS = 30000;
 

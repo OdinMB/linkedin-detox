@@ -8,7 +8,7 @@
  * Loaded as a content script between semantic-scorer.js and content.js.
  */
 
-const _embedSentences = LinkedInDetox.embedSentences;
+const _embedSentences = _ld.embedSentences;
 
 let _phraseBank = null;
 
@@ -52,7 +52,7 @@ async function _loadPhraseBank() {
 }
 
 function _splitIntoSentences(text) {
-  return LinkedInDetox.splitSentences(text, { minLength: 10 });
+  return _ld.splitSentences(text, { minLength: 10 });
 }
 
 /**
