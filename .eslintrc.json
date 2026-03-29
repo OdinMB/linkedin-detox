@@ -1,0 +1,44 @@
+{
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "webextensions": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2021,
+    "sourceType": "module"
+  },
+  "rules": {
+    "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "no-undef": "error",
+    "eqeqeq": ["error", "always"]
+  },
+  "overrides": [
+    {
+      "files": ["*.test.js"],
+      "env": {
+        "node": true
+      }
+    },
+    {
+      "files": ["scripts/*.js"],
+      "env": {
+        "node": true
+      },
+      "parserOptions": {
+        "sourceType": "script"
+      }
+    }
+  ],
+  "globals": {
+    "_ld": "readonly",
+    "analyzePost": "readonly",
+    "analyzePostAsync": "readonly",
+    "isPromotedPost": "readonly",
+    "getSemanticScore": "readonly",
+    "computeSemanticScore": "readonly",
+    "cosineSimilarity": "readonly",
+    "_resetPhraseBank": "readonly",
+    "module": "readonly"
+  }
+}

@@ -38,7 +38,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["icons/banners/*", "icons/banners/promoted/*", "src/phrase-embeddings.json", "src/lib/*"],
+      "resources": ["icons/banners/*", "icons/banners/promoted/*", "src/phrase-embeddings.json", "src/lib/transformers.min.js"],
       "matches": ["https://www.linkedin.com/*", "https://linkedin.com/*"]
     }
   ]

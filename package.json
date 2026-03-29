@@ -3,6 +3,8 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "lint": "eslint src/ --ignore-pattern '*.test.js' --ignore-pattern 'lib/' --ignore-pattern 'models/'",
     "build:zip": "node scripts/build-zip.js"
   },
   "devDependencies": {
