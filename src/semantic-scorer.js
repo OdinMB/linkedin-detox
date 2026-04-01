@@ -29,23 +29,30 @@ function cosineSimilarity(a, b) {
   return dot / denom;
 }
 
+// Similarity thresholds and score interpolation anchors
+const COSINE_LOW_THRESHOLD = 0.60;   // Below this → score 0
+const COSINE_HIGH_THRESHOLD = 0.75;  // Above this → score 80+
+const SCORE_AT_LOW = 50;             // Score when similarity = COSINE_LOW_THRESHOLD
+const SCORE_AT_HIGH = 80;            // Score when similarity = COSINE_HIGH_THRESHOLD
+const SCORE_AT_MAX = 100;            // Score when similarity = 1.0
+
 /**
  * Convert a max cosine similarity value to a score (0-100).
- * - similarity >= 0.75 → score 80+
- * - similarity >= 0.60 → score 50+
- * - similarity < 0.60  → score 0
+ * - similarity >= HIGH → score 80+
+ * - similarity >= LOW  → score 50+
+ * - similarity < LOW   → score 0
  *
  * @param {number} similarity
  * @returns {number}
  */
 function scoreFromSimilarity(similarity) {
-  if (similarity < 0.60) return 0;
-  if (similarity < 0.75) {
-    // Linear interpolation: 0.60 → 50, 0.75 → 80
-    return Math.round(50 + ((similarity - 0.60) / 0.15) * 30);
+  if (similarity < COSINE_LOW_THRESHOLD) return 0;
+  if (similarity < COSINE_HIGH_THRESHOLD) {
+    const range = COSINE_HIGH_THRESHOLD - COSINE_LOW_THRESHOLD;
+    return Math.round(SCORE_AT_LOW + ((similarity - COSINE_LOW_THRESHOLD) / range) * (SCORE_AT_HIGH - SCORE_AT_LOW));
   }
-  // Linear interpolation: 0.75 → 80, 1.0 → 100
-  return Math.min(100, Math.round(80 + ((similarity - 0.75) / 0.25) * 20));
+  const range = 1.0 - COSINE_HIGH_THRESHOLD;
+  return Math.min(SCORE_AT_MAX, Math.round(SCORE_AT_HIGH + ((similarity - COSINE_HIGH_THRESHOLD) / range) * (SCORE_AT_MAX - SCORE_AT_HIGH)));
 }
 
 /**
@@ -67,7 +74,7 @@ function computeSemanticScore(sentenceEmbeddings, phraseBank) {
   for (const sentenceEmb of sentenceEmbeddings) {
     for (const phrase of phraseBank) {
       const sim = cosineSimilarity(sentenceEmb, phrase.embedding);
-      if (sim >= 0.60) {
+      if (sim >= COSINE_LOW_THRESHOLD) {
         const score = scoreFromSimilarity(sim);
         if (score > maxScore) maxScore = score;
         const prev = bestByLabel.get(phrase.label);

@@ -7,14 +7,20 @@
  * Final score = max of all scorers. One strong signal is enough.
  */
 
+// --- Scoring constants ---
+
+const EM_DASH_SCORE_MULTIPLIER = 50;    // density 1.0 = 50 points, 2.0 = 100
+const WORD_FREQ_SCORE_MULTIPLIER = 800; // density * 800, capped at 100
+const COOCCURRENCE_SCORE_PER_MATCH = 25; // each co-occurrence match adds 25 points
+
 // --- Em dash frequency scorer ---
 
 const EM_DASH_RE = /\u2014|---|--/g;
 const ELLIPSIS_RE = /\.{3,}/g;
 
-function splitSentences(text) {
-  return text.split(/[.!?]+/).filter((s) => s.trim().length > 0);
-}
+const splitSentences = (typeof _ld !== "undefined" && _ld.splitSentences)
+  ? _ld.splitSentences
+  : function (text) { return text.split(/[.!?\n]+/).filter((s) => s.trim().length > 0); };
 
 /**
  * Scores em dash and ellipsis density.
@@ -32,8 +38,7 @@ function emDashScorer(text) {
   if (totalCount === 0) return { score: 0, matches: [] };
 
   const density = totalCount / sentences.length;
-  // density of 1.0 = ~50 points, 2.0 = ~100 points
-  const score = Math.min(100, Math.round(density * 50));
+  const score = Math.min(100, Math.round(density * EM_DASH_SCORE_MULTIPLIER));
 
   const matches = [];
   if (dashCount > 0) {
@@ -136,8 +141,7 @@ function wordFrequencyScorer(text, userWords, deletedBuiltinLabels) {
   if (matches.length === 0) return { score: 0, matches: [] };
 
   const density = matchedWordCount / words.length;
-  // multiplier: density * 800, capped at 100
-  const score = Math.min(100, Math.round(density * 800));
+  const score = Math.min(100, Math.round(density * WORD_FREQ_SCORE_MULTIPLIER));
   // Deduplicate matches
   const unique = [...new Set(matches)];
 
@@ -216,8 +220,7 @@ function cooccurrenceScorer(text, userPatterns, deletedBuiltinLabels) {
 
   if (matches.length === 0) return { score: 0, matches: [] };
 
-  // Each match adds 25 points, capped at 100
-  const score = Math.min(100, matches.length * 25);
+  const score = Math.min(100, matches.length * COOCCURRENCE_SCORE_PER_MATCH);
   return { score, matches };
 }
 
@@ -280,6 +283,10 @@ function analyzePost(text, config) {
  */
 async function analyzePostAsync(text, config) {
   const syncResult = analyzePost(text, config);
+
+  // Two-pass optimization: skip expensive semantic scoring for posts
+  // heuristics already caught.
+  if (syncResult.blocked) return syncResult;
 
   if (!config.semanticEnabled || !config.getSemanticScore) {
     return syncResult;

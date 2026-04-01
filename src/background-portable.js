@@ -1,28 +1,12 @@
 /**
- * LinkedIn Detox — Background Service Worker
+ * LinkedIn Detox — Portable Background Script (Firefox + Safari)
  *
- * Thin relay: creates an offscreen document for the embedding model
- * and forwards messages between content script and offscreen doc.
+ * ES module that loads the ML embedding model directly in the background
+ * context. Firefox and Safari support WASM in background scripts natively,
+ * so no offscreen document relay is needed.
  */
 
-const OFFSCREEN_PATH = "src/offscreen.html";
-let creatingOffscreen = null;
-
-async function ensureOffscreen() {
-  const existing = await chrome.offscreen.hasDocument();
-  if (existing) return;
-  if (creatingOffscreen) {
-    await creatingOffscreen;
-    return;
-  }
-  creatingOffscreen = chrome.offscreen.createDocument({
-    url: OFFSCREEN_PATH,
-    reasons: ["WORKERS"],
-    justification: "Run ML embedding model for AI slop detection",
-  });
-  await creatingOffscreen;
-  creatingOffscreen = null;
-}
+import { ensureModel, getPipeline } from "./model-loader.js";
 
 // --- Extension icon badge ---
 
@@ -46,7 +30,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
   if (area === "sync" && changes.showBadge) updateBadge();
 });
 
-// Reset blocked count on service worker startup (session reset)
+// Reset blocked count on startup (session reset)
 chrome.storage.local.set({ blockedCount: 0 });
 updateBadge();
 
@@ -66,19 +50,27 @@ function flushBlockedCount() {
   });
 }
 
-// --- Message relay ---
+// --- Model status tracking ---
+
+let modelStatusReported = false;
+
+function reportModelStatus(success, err) {
+  if (modelStatusReported) return;
+  modelStatusReported = true;
+  if (success) {
+    console.log("[LinkedIn Detox] Model loaded");
+    chrome.storage.local.remove("semanticModelError");
+  } else {
+    console.error("[LinkedIn Detox] Model load failed:", err);
+    chrome.storage.local.set({
+      semanticModelError: (err && err.message) || "Model failed to load",
+    });
+  }
+}
+
+// --- Message handler ---
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === "modelError") {
-    chrome.storage.local.set({ semanticModelError: message.error || "Model failed to load" });
-    return;
-  }
-
-  if (message.type === "modelLoaded") {
-    chrome.storage.local.remove("semanticModelError");
-    return;
-  }
-
   if (message.type === "blocked") {
     pendingBlockedIncrements++;
     if (!blockedFlushTimer) {
@@ -89,13 +81,33 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.type !== "embed") return;
 
+  // Run model directly — no offscreen relay needed
   (async () => {
-    await ensureOffscreen();
-    const response = await chrome.runtime.sendMessage({
-      ...message,
-      target: "offscreen",
-    });
-    sendResponse(response);
+    try {
+      await ensureModel();
+    } catch (err) {
+      reportModelStatus(false, err);
+      sendResponse({ embeddings: [], error: "Model not loaded" });
+      return;
+    }
+
+    reportModelStatus(true);
+
+    const pipeline = getPipeline();
+    if (!pipeline) {
+      sendResponse({ embeddings: [], error: "Model not loaded" });
+      return;
+    }
+
+    try {
+      const output = await pipeline(message.sentences, {
+        pooling: "mean",
+        normalize: true,
+      });
+      sendResponse({ embeddings: output.tolist() });
+    } catch (err) {
+      sendResponse({ embeddings: [], error: err.message });
+    }
   })();
   return true;
 });

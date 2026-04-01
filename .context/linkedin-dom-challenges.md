@@ -14,7 +14,8 @@ Key implementation details:
 - **Banners**: `position: fixed` inside overlay, positioned via `getBoundingClientRect()` (viewport coords, no scroll offset needed).
 - **Scroll tracking**: `window.addEventListener("scroll", ..., { passive: true, capture: true })` — `capture: true` is essential because LinkedIn scrolls inside a container, not the window. Without capture, scroll events never reach our listener.
 - **MutationObserver**: observe `document.body` (not the feed container) with `{ childList: true, subtree: true, characterData: true }`. Observing only the feed container missed React's content rendering.
-- **Delayed retries**: React populates post content asynchronously. The initial scan often finds empty wrappers (height=0, text=""). Retry scans at 1s/3s/6s after load to catch content once rendered.
+- **Delayed retries**: React populates post content asynchronously. The initial scan often finds empty wrappers (height=0, text=""). Retry scans at configurable delays (`RETRY_SCAN_DELAYS_MS` in `content.js`, default 1s/3s/6s) after load to catch content once rendered.
+- **Stale selector sentinel**: If `POST_SELECTOR` matches zero elements across all scans, a console warning fires to signal that LinkedIn may have changed their DOM structure.
 - **Empty wrapper filtering**: Skip posts with `getBoundingClientRect().height < 10` — these are spacers/separators, not real posts.
 - **Viewport culling**: Skip posts where `rect.bottom < -100 || rect.top > window.innerHeight + 100` to avoid rendering off-screen banners.
 
@@ -52,8 +53,8 @@ Banners positioned with `scrollY` offset — LinkedIn's scroll container isn't `
 ### 5. Fixed overlay with element refs
 `position: fixed` with `capture: true` scroll — worked briefly, but feed virtualization destroys element refs. `document.body.contains(post)` returns false after scroll, banners cleaned up permanently.
 
-### 6. Ephemeral render with WeakMap
-WeakMap keyed by element ref — entries lost when React destroys/recreates elements during virtualization.
+### 6. Ephemeral render with WeakMap/WeakSet
+WeakMap/WeakSet keyed by element ref — entries lost when React destroys/recreates elements during virtualization. The current solution uses a `Set` of text content hashes (`dismissedHashes`) instead, which survives element recreation.
 
 ## Key Constraints
 

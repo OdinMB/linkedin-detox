@@ -70,14 +70,21 @@
   color: #e0e0e0;
 }
 
-/* Header row — title left, close button right */
+/* Header row — title+author left, close button right */
 .ld-banner__header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   width: 100%;
   padding: 12px 20px;
   flex-shrink: 0;
+}
+
+.ld-banner__header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .ld-banner__title {
@@ -206,4 +213,60 @@
 
 .ld-banner--promoted.ld-banner--dark .ld-banner__close:hover {
   color: #1a73e8;
+}
+
+/* Author line — name + trust button inline, sits under title in header */
+.ld-banner__author {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ld-banner__author-name {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  color: #999999;
+  letter-spacing: 0.5px;
+}
+
+.ld-banner--dark .ld-banner__author-name {
+  color: #666666;
+}
+
+/* Trust Author checkmark — inline next to author name */
+.ld-banner__trust {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid #999999;
+  border-radius: 3px;
+  color: #999999;
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.ld-banner__trust:hover {
+  color: #2e7d32;
+  border-color: #2e7d32;
+  background: rgba(46, 125, 50, 0.08);
+}
+
+.ld-banner--dark .ld-banner__trust {
+  color: #666666;
+  border-color: #666666;
+}
+
+.ld-banner--dark .ld-banner__trust:hover {
+  color: #66bb6a;
+  border-color: #66bb6a;
+  background: rgba(102, 187, 106, 0.1);
 }
