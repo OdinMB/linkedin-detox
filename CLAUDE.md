@@ -1,10 +1,10 @@
 # LinkedIn Detox
 
-Chrome extension that detects AI-generated slop on LinkedIn and either hides it or replaces it with snarky roast banners. Also blocks promoted/sponsored posts. Built for laughs, not production.
+Cross-browser extension (Chrome, Firefox, Safari) that detects AI-generated slop on LinkedIn and either hides it or replaces it with snarky roast banners. Also blocks promoted/sponsored posts. Built for laughs, not production.
 
 ## Tech Stack
 
-- Chrome Extension (Manifest V3)
+- Browser Extension (Manifest V3) — Chrome, Firefox 128+, Safari 16.4+
 - Vanilla JavaScript (no build step, no framework)
 - chrome.storage.sync for settings persistence
 - MutationObserver for feed watching
@@ -12,15 +12,19 @@ Chrome extension that detects AI-generated slop on LinkedIn and either hides it 
 ## Project Layout
 
 ```
-├── manifest.json           # Extension manifest (MV3)
+├── manifest.json           # Chrome extension manifest (MV3)
+├── manifest.firefox.json   # Firefox manifest (background.scripts + gecko settings)
+├── manifest.safari.json    # Safari manifest (for xcrun converter)
 ├── icons/                  # Extension icons (16/48/128)
 ├── src/
 │   ├── detector.js         # Detection engine — analyzePost(text, config) + analyzePostAsync + isPromotedPost
 │   ├── semantic-scorer.js  # Cosine similarity scoring against phrase embeddings
 │   ├── semantic-bridge.js  # Content script — bridges to background for embedding
-│   ├── background.js       # Service worker — relays to offscreen document
-│   ├── offscreen.html      # Offscreen document shell
-│   ├── offscreen.js        # Loads transformers.js + MiniLM model
+│   ├── model-loader.js     # ES module — ML model env config + lazy init (shared by offscreen + portable)
+│   ├── background.js       # Chrome service worker — relays to offscreen document
+│   ├── background-portable.js # Firefox/Safari background — loads model directly (ES module)
+│   ├── offscreen.html      # Offscreen document shell (Chrome only)
+│   ├── offscreen.js        # Chrome offscreen doc — imports model-loader, handles embed messages
 │   ├── phrase-embeddings.json # Precomputed embeddings for ~50 canonical AI-slop phrase types
 │   ├── models/                 # Bundled ML model (checked in — no runtime downloads)
 │   │   └── Xenova/all-MiniLM-L6-v2/  # Quantized MiniLM for semantic scoring
@@ -42,7 +46,7 @@ Chrome extension that detects AI-generated slop on LinkedIn and either hides it 
 │       └── options.js      # Options logic — pattern management, phrase embedding
 ├── scripts/
 │   ├── build-embeddings.js # Node script to regenerate phrase-embeddings.json
-│   └── build-zip.js        # Pure Node.js zip builder (no shell dependencies)
+│   └── build.js            # Package builder — all browsers or --chrome/--firefox/--safari
 ├── .eslintrc.json          # ESLint config (browser env, basic rules)
 ├── vitest.config.js        # Vitest config with coverage settings
 ├── .context/               # Architecture docs
@@ -79,9 +83,16 @@ All runtime assets are checked into git (no setup required to run the extension)
 
 See README > Development > "Updating bundled assets" for full commands.
 
-### Chrome Web Store zip
+### Browser packages
 
-`npm run build:zip` creates `dist/linkedin-detox-<version>.zip` with only runtime files (no tests, docs, or dev config). The script lives at `scripts/build-zip.js`.
+`scripts/build.js` packages the extension for each browser:
+
+- **`npm run build`** — All browsers at once (Chrome + Firefox + Safari)
+- **`npm run build:chrome`** — Chrome zip only (`dist/linkedin-detox-<version>.zip`)
+- **`npm run build:firefox`** — Firefox zip only (`dist/linkedin-detox-<version>-firefox.zip`)
+- **`npm run build:safari`** — Safari directory only (`dist/linkedin-detox-<version>-safari/`) for `xcrun safari-web-extension-converter`
+
+Each build includes only runtime files and swaps in the browser-specific manifest and background script. Firefox/Safari use `background-portable.js` + `model-loader.js` (direct model loading); Chrome uses `background.js` + offscreen document relay.
 
 ## Architecture — Detection
 
@@ -118,15 +129,19 @@ This means the model is never invoked for posts that heuristics already catch, k
 
 **User-defined patterns** are stored in `chrome.storage.sync` as `userSignalWords` (word strings, converted to RegExp by `content.js`) and `userCooccurrencePatterns` (group arrays with labels).
 
-### Semantic Scorer — Offscreen Architecture
+### Semantic Scorer — Model Architecture
 
-The embedding model needs full browser APIs (WebAssembly, Workers, Atomics) that MV3 service workers lack. The model runs in an **offscreen document**:
+The embedding model configuration (WASM env, pipeline init) lives in `src/model-loader.js`, shared by both browser paths:
+
+**Chrome path (offscreen relay):** Chrome's MV3 service workers lack WASM support, so the model runs in an offscreen document:
 - `src/semantic-bridge.js` (content script) sends `chrome.runtime.sendMessage({ type: "embed", sentences })`
 - `src/background.js` (service worker) creates the offscreen document and relays the message
-- `src/offscreen.js` loads the model, embeds sentences, returns embeddings
-- `src/semantic-scorer.js` computes cosine similarity against the phrase bank
+- `src/offscreen.js` imports `model-loader.js`, runs the model, returns embeddings
 
-**Setup:** See "Semantic scoring setup" in the Development section above.
+**Firefox/Safari path (direct):** These browsers support WASM in background scripts natively:
+- `src/background-portable.js` imports `model-loader.js` and handles embed messages directly — no offscreen relay
+
+In both paths, `src/semantic-scorer.js` computes cosine similarity against the phrase bank.
 
 ## Detection Posture
 
@@ -141,15 +156,16 @@ We try to be as unobtrusive to LinkedIn's DOM and code as possible — avoid rem
 - **[Semantic Scoring](.context/semantic-scoring.md)** — The semantic scorer uses a two-pass async architecture; changes to scoring, worker protocol, or phrase bank must respect this flow. Details on components, data flow, and key decisions.
 - **[LinkedIn DOM Challenges](.context/linkedin-dom-challenges.md)** — LinkedIn virtualizes its feed; the extension uses text hashing instead of element refs. Details on the overlay approach.
 - **[Permissions](.context/permissions.md)** — Why each manifest permission exists, what uses it, and what was removed.
+- **[Cross-Browser](.context/cross-browser.md)** — Chrome uses offscreen relay, Firefox/Safari load the model directly; build script, manifest, and background file differ per browser. Details on the build matrix and shared model loader.
 
 ## Quality Checks
 
 Before committing, run:
 
-- **`npm test`** — vitest unit tests (169 tests across 6 files)
+- **`npm test`** — vitest unit tests (170 tests across 6 files)
 - **`npm run lint`** — ESLint with browser env, `no-unused-vars`, `no-undef`, `eqeqeq`
 - **`npm run test:coverage`** — vitest with lcov coverage report (requires `@vitest/coverage-v8`)
-- **`npm run build:zip`** — verify the Chrome Web Store zip builds cleanly
+- **`npm run build`** — verify all browser packages build cleanly
 
 ## Conventions
 
@@ -160,6 +176,7 @@ Before committing, run:
 - Scoring constants are named (e.g., `EM_DASH_SCORE_MULTIPLIER`, `COSINE_LOW_THRESHOLD`) — don't use inline magic numbers in scoring formulas
 - Tests use vitest (`npm test`) — detector.js exports via conditional `module.exports` for testing
 - Shared code lives in `src/shared/` using the `window._ld` namespace pattern (IIFE + `window._ld = window._ld || {}`). Each shared file also has a `module.exports` guard for test compatibility. New shared utilities should follow this pattern.
+- Background-context-only modules (ES `import`/`export`) live in `src/` rather than `src/shared/`, since they can't follow the IIFE/namespace pattern. Example: `model-loader.js`.
 - When code is needed by multiple contexts (content script, popup, options), extract it to `src/shared/` rather than duplicating it
 - Content script load order in manifest is a hard dependency: `config.js` → `utils.js` → `embed.js` → `detector.js` → `semantic-scorer.js` → `semantic-bridge.js` → `scanner.js` → `renderer.js` → `content.js`. Earlier scripts define globals that later scripts consume.
 - Options page renders lists using DOM construction APIs (`createElement`/`textContent`), not `innerHTML` with string interpolation — this eliminates XSS surface

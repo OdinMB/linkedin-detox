@@ -26,11 +26,6 @@ Export all settings + custom patterns to JSON file, import with validation. Enab
 - **Where**: `src/options/options.html`, `src/options/options.js`
 - **Effort**: small
 
-### Keyboard Shortcuts
-Escape to dismiss topmost banner, Shift+Escape to dismiss all, `chrome.commands` for toggle on/off. Quick win for power users and accessibility.
-- **Where**: `manifest.json`, `src/content.js`, `src/background.js`
-- **Effort**: small
-
 ### Comment Detection
 Extend slop detection to LinkedIn comments ("Great insight! This resonates deeply..."). Detection engine already works on any text — only needs DOM targeting and a smaller banner format. Add `detectComments` toggle.
 - **Where**: `src/scanner.js`, `src/renderer.js`, `src/content.css`, `src/popup/popup.html`
@@ -46,10 +41,8 @@ Rolling log of last 100 blocked posts in `chrome.storage.local` (timestamp, auth
 - **Where**: `src/scanner.js`, `src/shared/config.js`, `src/options/`
 - **Effort**: medium
 
-### Firefox / Cross-Browser Port
-Create `manifest.firefox.json`, conditional in `background.js` to skip offscreen (Firefox supports WASM in service workers natively), `build:firefox` script. Codebase is 90% portable.
-- **Where**: `manifest.firefox.json`, `src/background.js`, `scripts/build-zip.js`, `package.json`
-- **Effort**: large
+### ~~Firefox / Cross-Browser Port~~ (completed 2026-03-29)
+Firefox + Safari support via `background-portable.js` + `model-loader.js`. Build scripts: `build:firefox`, `build:safari`.
 
 ---
 
@@ -66,6 +59,7 @@ Items considered and explicitly passed on:
 - **Structural Analysis Scorer (broetry, burstiness, contraction avoidance)** — interesting research signals but high false-positive risk on legitimate short-form LinkedIn writing. Not worth the calibration effort for a satire extension.
 - **Chrome Gemini Nano / Prompt API integration** — promising but requires 22GB+ disk space for model, Chrome 138+, and introduces hard dependency on Chrome's AI availability. MiniLM semantic scorer is good enough for the comedy use case.
 - **Trust Author: settings-page-only flow** — the banner checkmark button works fine after the author-in-header change; removing it reduces discoverability for no clear gain.
+- **Keyboard Shortcuts** — low impact for a satire extension; users interact primarily via popup. Chrome's `chrome.commands` API is limited to 4 shortcuts and requires manifest changes that complicate cross-browser work.
 
 ---
 

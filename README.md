@@ -8,7 +8,7 @@
   <img src="icons/icon128-transparent.png" width="28" alt="☢">
 </p>
 
-A free, open-source Chrome extension that detects AI-generated slop on LinkedIn and either hides it or drops a snarky roast banner right on top. Also blocks promoted/sponsored posts if you're tired of ads pretending to be content.
+A free, open-source browser extension that detects AI-generated slop on LinkedIn and either hides it or drops a snarky roast banner right on top. Also blocks promoted/sponsored posts if you're tired of ads pretending to be content. Works on Chrome, Firefox, and Safari.
 
 <p align="center">
   <img src="icons/store/screenshot-linkedin.png" width="390" alt="LinkedIn Detox — slop detection">
@@ -27,6 +27,8 @@ A free, open-source Chrome extension that detects AI-generated slop on LinkedIn 
 
 ## Install
 
+### Chrome
+
 **[Install from the Chrome Web Store](https://chromewebstore.google.com/detail/linkedin-detox/ohfgjbpefhpdkcpmnafcklgmijiageoc)** -- one click and you're done.
 
 Or install manually from source:
@@ -36,6 +38,20 @@ Or install manually from source:
 3. Enable **Developer mode** (toggle in the top right)
 4. Click **Load unpacked** and select the folder you just unzipped
 5. Navigate to [linkedin.com](https://www.linkedin.com) and watch the magic happen
+
+### Firefox and Safari
+
+> **Note (April 2026):** Firefox and Safari builds are code-complete but have not been tested in those browsers yet. They may have rough edges. Bug reports welcome.
+
+**Firefox** -- not yet on AMO. To install manually:
+1. Run `npm run build:firefox` (or `npm run build` for all browsers)
+2. Open `about:debugging#/runtime/this-firefox`
+3. Click **Load Temporary Add-on** and select `dist/linkedin-detox-<version>-firefox.zip`
+
+**Safari** -- requires macOS with Xcode:
+1. Run `npm run build:safari` (or `npm run build` for all browsers)
+2. Run `xcrun safari-web-extension-converter dist/linkedin-detox-<version>-safari`
+3. Open the generated Xcode project, build, and enable the extension in Safari preferences
 
 ## Privacy
 
@@ -98,13 +114,21 @@ npm test
 
 Uses vitest. Tests cover the detection engine -- the part that actually matters.
 
-### Building for the Chrome Web Store
+### Building for distribution
 
 ```bash
-npm run build:zip
+npm run build            # All browsers (Chrome + Firefox + Safari)
+npm run build:chrome     # Chrome only
+npm run build:firefox    # Firefox only
+npm run build:safari     # Safari only
 ```
 
-Creates `dist/linkedin-detox-<version>.zip` containing only the files Chrome needs -- no tests, docs, config, or node_modules. Upload this zip to the [Chrome Developer Dashboard](https://chrome.google.com/webstore/devconsole).
+Output in `dist/`:
+- `linkedin-detox-<version>-chrome.zip` -- upload to the [Chrome Developer Dashboard](https://chrome.google.com/webstore/devconsole)
+- `linkedin-detox-<version>-firefox.zip` -- upload to [Firefox Add-ons](https://addons.mozilla.org/)
+- `linkedin-detox-<version>-safari/` -- feed to `xcrun safari-web-extension-converter` to create an Xcode project
+
+Each zip/directory contains only the files that browser needs -- no tests, docs, config, or node_modules.
 
 ### Updating bundled assets
 
