@@ -1,59 +1,28 @@
 /**
- * LinkedIn Detox — Offscreen Document
+ * LinkedIn Detox — Offscreen Document (Chrome only)
  *
  * Runs the embedding model in a full page context (supports WebAssembly,
- * URL.createObjectURL, Atomics — things service workers lack).
+ * URL.createObjectURL, Atomics — things Chrome service workers lack).
  * Background service worker relays messages here.
  */
 
-import { env, pipeline as createPipeline } from "./lib/transformers.min.js";
+import { ensureModel, getPipeline } from "./model-loader.js";
 
-// Force single-threaded WASM — multi-threading spawns blob-URL workers
-// that violate MV3 CSP. The offscreen doc is isolated so this is fine.
-env.backends.onnx.wasm.numThreads = 1;
-env.backends.onnx.wasm.proxy = false;
+let modelStatusReported = false;
 
-// Use bundled model files only — no network requests to HuggingFace.
-env.allowRemoteModels = false;
-env.allowLocalModels = true;
-env.localModelPath = chrome.runtime.getURL("src/models/");
-
-// Disable browser Cache API — chrome-extension:// URLs are unsupported
-// schemes for Cache.put(), causing harmless but noisy errors.
-env.useBrowserCache = false;
-
-let pipelineInstance = null;
-let initPromise = null;
-
-async function initModel() {
-  if (pipelineInstance) return;
-  try {
-    pipelineInstance = await createPipeline(
-      "feature-extraction",
-      "Xenova/all-MiniLM-L6-v2",
-      { quantized: true }
-    );
+function reportModelStatus(success, err) {
+  if (modelStatusReported) return;
+  modelStatusReported = true;
+  if (success) {
     console.log("[LinkedIn Detox Offscreen] Model loaded");
     chrome.runtime.sendMessage({ type: "modelLoaded" }).catch(() => {});
-  } catch (err) {
+  } else {
     console.error("[LinkedIn Detox Offscreen] Model load failed:", err);
-    pipelineInstance = null;
-    // Surface error to popup via background relay
     chrome.runtime.sendMessage({
       type: "modelError",
-      error: err.message || "Unknown model load error",
+      error: (err && err.message) || "Unknown model load error",
     }).catch(() => {});
   }
-}
-
-function ensureModel() {
-  if (pipelineInstance) return Promise.resolve();
-  if (!initPromise) {
-    initPromise = initModel().finally(() => {
-      if (!pipelineInstance) initPromise = null;
-    });
-  }
-  return initPromise;
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -61,15 +30,24 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.type === "embed") {
     (async () => {
-      await ensureModel();
+      try {
+        await ensureModel();
+      } catch (err) {
+        reportModelStatus(false, err);
+        sendResponse({ embeddings: [], error: "Model not loaded" });
+        return;
+      }
 
-      if (!pipelineInstance) {
+      reportModelStatus(true);
+
+      const pipeline = getPipeline();
+      if (!pipeline) {
         sendResponse({ embeddings: [], error: "Model not loaded" });
         return;
       }
 
       try {
-        const output = await pipelineInstance(message.sentences, {
+        const output = await pipeline(message.sentences, {
           pooling: "mean",
           normalize: true,
         });

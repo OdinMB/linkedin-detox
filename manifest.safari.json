@@ -1,0 +1,46 @@
+{
+  "manifest_version": 3,
+  "name": "LinkedIn Detox",
+  "version": "0.3.0",
+  "description": "Hide AI slop and block promoted posts on LinkedIn. Replace them with something honest.",
+  "permissions": ["storage"],
+  "host_permissions": ["https://www.linkedin.com/*", "https://linkedin.com/*"],
+  "options_ui": {
+    "page": "src/options/options.html",
+    "open_in_tab": true
+  },
+  "action": {
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  },
+  "background": {
+    "scripts": ["src/background-portable.js"],
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.linkedin.com/*", "https://linkedin.com/*"],
+      "js": ["src/shared/config.js", "src/shared/utils.js", "src/shared/embed.js", "src/detector.js", "src/semantic-scorer.js", "src/semantic-bridge.js", "src/scanner.js", "src/renderer.js", "src/content.js"],
+      "css": ["src/content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/banners/*", "icons/banners/promoted/*", "src/phrase-embeddings.json", "src/lib/transformers.min.js"],
+      "matches": ["https://www.linkedin.com/*", "https://linkedin.com/*"]
+    }
+  ]
+}
